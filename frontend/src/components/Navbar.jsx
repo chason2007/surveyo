@@ -8,7 +8,7 @@ export default function Navbar() {
         <nav className="navbar">
             <div className="container navbar-inner">
                 <Link to="/" className="navbar-brand">
-                    <Building2 size={24} color="var(--accent-blue)" style={{ filter: 'drop-shadow(0 0 8px rgba(56,189,248,0.4))' }} />
+                    <img src="/logo.png" alt="Surveyo Logo" style={{ width: 28, height: 28, borderRadius: 6 }} />
                     <span className="text-gradient" style={{ fontSize: '20px', letterSpacing: '-0.02em' }}>Surveyo</span>
                     <div className="brand-dot" />
                 </Link>
