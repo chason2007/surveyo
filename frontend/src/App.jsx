@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
 import NewSurvey from './pages/NewSurvey';
 import SurveyEditor from './pages/SurveyEditor';
@@ -8,14 +9,17 @@ import './index.css';
 
 export default function App() {
   return (
-    <>
+    <div className="app-container">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/surveys/new" element={<NewSurvey />} />
-        <Route path="/surveys/:id/edit" element={<SurveyEditor />} />
-        <Route path="/surveys/:id/report" element={<ReportPreview />} />
-      </Routes>
-    </>
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/surveys/new" element={<NewSurvey />} />
+          <Route path="/surveys/:id/edit" element={<SurveyEditor />} />
+          <Route path="/surveys/:id/report" element={<ReportPreview />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
   );
 }
