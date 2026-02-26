@@ -9,7 +9,7 @@ export default function Navbar() {
             <div className="container navbar-inner">
                 <Link to="/" className="navbar-brand">
                     <Building2 size={22} color="var(--accent-blue)" />
-                    <span>PropSurvey</span>
+                    <span>Surveyo</span>
                     <div className="brand-dot" />
                 </Link>
                 <div className="navbar-links">
