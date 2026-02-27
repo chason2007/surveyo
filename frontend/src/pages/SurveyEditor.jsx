@@ -13,8 +13,12 @@ function ItemRow({ item, onChange, onDelete }) {
     const setStatus = (s) => onChange({ ...item, status: s });
     const setField = (k, v) => onChange({ ...item, [k]: v });
 
+    const statusKey = item.status === 'Good' ? 'good'
+        : item.status === 'Need Action' ? 'need-action'
+            : item.status === 'N/A' ? 'na' : '';
+
     return (
-        <div className="item-row">
+        <div className={`item-row${statusKey ? ` item-row--${statusKey}` : ''}`}>
             <div className="item-row-header">
                 <input
                     className="item-label-input"
@@ -49,8 +53,8 @@ function ItemRow({ item, onChange, onDelete }) {
                 </button>
             </div>
 
-            {expanded && (
-                <div style={{ paddingLeft: 4 }}>
+            <div className={`item-expand${expanded ? ' item-expand--open' : ''}`}>
+                <div style={{ paddingLeft: 4, paddingTop: 12 }}>
                     <div className="form-group" style={{ marginBottom: 12 }}>
                         <label className="form-label">Comments</label>
                         <textarea
@@ -69,7 +73,7 @@ function ItemRow({ item, onChange, onDelete }) {
                         />
                     </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }
@@ -99,7 +103,6 @@ export default function SurveyEditor() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    // Auto-save 1.5s after last change
     const scheduleSave = useCallback((updatedSurvey) => {
         if (saveTimer.current) clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(async () => {
@@ -125,7 +128,6 @@ export default function SurveyEditor() {
         finally { setSaving(false); }
     };
 
-    // Section ops
     const updateSection = (secIdx, updated) => {
         const sections = [...survey.sections];
         sections[secIdx] = updated;
@@ -212,7 +214,6 @@ export default function SurveyEditor() {
                         </div>
                     </div>
 
-                    {/* Status toggle */}
                     <select
                         value={survey.status}
                         onChange={e => updateSurvey({ ...survey, status: e.target.value })}
