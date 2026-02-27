@@ -61,16 +61,23 @@ export default function Dashboard() {
                 ) : (
                     <div className="survey-grid">
                         {surveys.length === 0 ? (
-                            <div className="empty-state">
-                                <Building2 size={48} style={{ opacity: 0.3, margin: '0 auto 16px' }} />
-                                <h3>No surveys yet</h3>
-                                <p>Create your first property survey to get started.</p>
+                            <div className="empty-state" style={{ gridColumn: '1 / -1', padding: '60px 20px' }}>
+                                <div style={{
+                                    width: 80, height: 80, borderRadius: '50%',
+                                    background: 'rgba(56, 189, 248, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    margin: '0 auto 24px', boxShadow: '0 0 30px rgba(56,189,248,0.2)'
+                                }}>
+                                    <Building2 size={40} color="var(--accent-blue)" />
+                                </div>
+                                <h3 style={{ fontSize: 24, marginBottom: 8, color: '#fff' }}>No surveys yet</h3>
+                                <p style={{ fontSize: 15, color: 'var(--text-muted)' }}>Create your first property survey to get started.</p>
                                 <button
                                     className="btn btn-primary"
-                                    style={{ marginTop: 20, display: 'inline-flex' }}
+                                    style={{ marginTop: 24, display: 'inline-flex', padding: '12px 24px', fontSize: 15 }}
                                     onClick={() => navigate('/surveys/new')}
                                 >
-                                    <Plus size={16} /> New Survey
+                                    <Plus size={18} /> New Survey
                                 </button>
                             </div>
                         ) : surveys.map(s => (

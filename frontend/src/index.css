@@ -192,6 +192,18 @@ select option {
 
 .navbar-links a.active {
   color: var(--accent-blue);
+  position: relative;
+}
+
+.navbar-links a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background: var(--accent-blue);
+  border-radius: 2px;
 }
 
 /* ── Hero Banner ─────────────────────────────────────────────────── */

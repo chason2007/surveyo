@@ -276,9 +276,20 @@ export default function SurveyEditor() {
                     {/* Main panel */}
                     <main>
                         {!section ? (
-                            <div className="empty-state">
-                                <h3>No sections yet</h3>
-                                <p>Use the sidebar to add sections/rooms.</p>
+                            <div className="empty-state" style={{ padding: '80px 20px' }}>
+                                <div style={{
+                                    width: 80, height: 80, borderRadius: '50%',
+                                    background: 'rgba(56, 189, 248, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    margin: '0 auto 24px', boxShadow: '0 0 30px rgba(56,189,248,0.2)'
+                                }}>
+                                    <FileText size={40} color="var(--accent-blue)" />
+                                </div>
+                                <h3 style={{ fontSize: 22, marginBottom: 8, color: '#fff' }}>No sections yet</h3>
+                                <p style={{ fontSize: 15, color: 'var(--text-muted)' }}>Use the sidebar to add sections or rooms to inspect.</p>
+                                <button className="btn btn-primary" style={{ marginTop: 24, display: 'inline-flex', padding: '10px 20px', fontSize: 14 }} onClick={addSection}>
+                                    <Plus size={16} /> Add First Section
+                                </button>
                             </div>
                         ) : (
                             <>
@@ -300,9 +311,18 @@ export default function SurveyEditor() {
                                 </div>
 
                                 {section.items.length === 0 ? (
-                                    <div className="empty-state" style={{ padding: 40, gridColumn: 'unset' }}>
-                                        <h3>No items in this section</h3>
-                                        <button className="btn btn-primary" style={{ marginTop: 12, display: 'inline-flex' }} onClick={addItem}>
+                                    <div className="empty-state" style={{ padding: '60px 20px', gridColumn: 'unset' }}>
+                                        <div style={{
+                                            width: 64, height: 64, borderRadius: '50%',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            margin: '0 auto 20px'
+                                        }}>
+                                            <CheckCircle size={32} color="var(--text-muted)" />
+                                        </div>
+                                        <h3 style={{ fontSize: 20, marginBottom: 8, color: '#fff' }}>No items in this section</h3>
+                                        <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>Start adding items to inspect for {section.roomName}.</p>
+                                        <button className="btn btn-primary" style={{ marginTop: 20, display: 'inline-flex' }} onClick={addItem}>
                                             <Plus size={15} /> Add First Item
                                         </button>
                                     </div>
