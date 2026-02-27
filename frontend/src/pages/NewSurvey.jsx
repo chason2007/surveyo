@@ -6,7 +6,7 @@ import api from '../api/axios';
 const DEFAULT_SECTIONS = [
     'Entry / Foyer', 'Living Room', 'Dining Room', 'Kitchen',
     'Bedroom 1', 'Bedroom 2', 'Master Bedroom', 'Bathroom 1',
-    'Bathroom 2', 'Balcony', 'Parking', 'Store Room'
+    'Bathroom 2', 'Balcony', 'Parking', 'Store Room', 'General Comments'
 ];
 
 const DEFAULT_ITEMS = {
@@ -22,6 +22,15 @@ const DEFAULT_ITEMS = {
     'Dining Room': ['Ceiling', 'Walls', 'Floor', 'Windows', 'Electrical Points'],
     'Parking': ['Floor', 'Walls', 'Ceiling', 'Shutter/Door', 'Lighting'],
     'Store Room': ['Ceiling', 'Walls', 'Floor', 'Door'],
+    'General Comments': [
+        'Property is deeply cleaned?',
+        'Are all internal walls in good condition (don\'t need painting)?',
+        'Are all light fixtures working?',
+        'Are all windows and doors functioning properly?',
+        'Is the property free of pest infestation?',
+        'Are all appliances in working order?',
+        'Is the property free of any water damage or leaks?',
+    ],
 };
 
 const getDefaultItems = (sectionName) => {

@@ -125,51 +125,61 @@ export default function ReportPreview() {
                             </span>
                         </div>
 
-                        {/* Sections */}
-                        {survey.sections.map((section, si) => (
-                            <div className="report-section" key={si}>
-                                <div className="report-section-header">{section.roomName.toUpperCase()}</div>
-                                <table className="report-table">
-                                    <thead>
-                                        <tr>
-                                            <th style={{ width: '33%' }}>Item</th>
-                                            <th style={{ width: '15%' }}>Status</th>
-                                            <th style={{ width: '28%' }}>Comments</th>
-                                            <th style={{ width: '24%' }}>Photos</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {section.items.map((item, ii) => (
-                                            <tr key={ii}>
-                                                <td style={{ fontWeight: 600 }}>{item.label}</td>
-                                                <td>
-                                                    <span className={statusClass(item.status)}>
-                                                        {item.status || 'N/A'}
-                                                    </span>
-                                                </td>
-                                                <td>{item.comments || '—'}</td>
-                                                <td>
-                                                    {item.photos && item.photos.length > 0 ? (
-                                                        <div className="report-photos">
-                                                            {item.photos.map((url, pi) => (
-                                                                <img key={pi} src={url} alt="" className="report-photo" />
-                                                            ))}
-                                                        </div>
-                                                    ) : '—'}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {section.items.length === 0 && (
+                        {/* Sections — global photo counter */}
+                        {(() => {
+                            let photoCounter = 0;
+                            return survey.sections.map((section, si) => (
+                                <div className="report-section" key={si}>
+                                    <div className="report-section-header">{section.roomName.toUpperCase()}</div>
+                                    <table className="report-table">
+                                        <thead>
                                             <tr>
-                                                <td colSpan={4} style={{ color: '#94a3b8', fontStyle: 'italic' }}>
-                                                    No items in this section.
-                                                </td>
+                                                <th style={{ width: '33%' }}>Item</th>
+                                                <th style={{ width: '15%' }}>Status</th>
+                                                <th style={{ width: '28%' }}>Comments</th>
+                                                <th style={{ width: '24%' }}>Photos</th>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ))}
+                                        </thead>
+                                        <tbody>
+                                            {section.items.map((item, ii) => (
+                                                <tr key={ii}>
+                                                    <td data-label="ITEM" style={{ fontWeight: 600 }}>{item.label}</td>
+                                                    <td data-label="STATUS">
+                                                        <span className={statusClass(item.status)}>
+                                                            {item.status || 'N/A'}
+                                                        </span>
+                                                    </td>
+                                                    <td data-label="COMMENTS">{item.comments || '—'}</td>
+                                                    <td data-label="PHOTOS">
+                                                        {item.photos && item.photos.length > 0 ? (
+                                                            <div className="report-photos">
+                                                                {item.photos.map((url) => {
+                                                                    photoCounter += 1;
+                                                                    const num = photoCounter;
+                                                                    return (
+                                                                        <div key={num} className="report-photo-wrap">
+                                                                            <img src={url} alt={`Photo ${num}`} className="report-photo" />
+                                                                            <span className="report-photo-label">Photo {num}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        ) : '—'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {section.items.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={4} style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                                                        No items in this section.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ));
+                        })()}
 
                         {/* Footer note */}
                         <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #e2e8f0', fontSize: 12, color: '#94a3b8' }}>
