@@ -246,6 +246,30 @@ export default function ReportPreview() {
                             ));
                         })()}
 
+                        {/* Global Photos */}
+                        {survey.globalPhotos && survey.globalPhotos.length > 0 && (() => {
+                            // Calculate starting photo number for global photos
+                            let globalPhotoNum = 0;
+                            survey.sections.forEach(s => s.items.forEach(i => { if (i.photos) globalPhotoNum += i.photos.length; }));
+
+                            return (
+                                <div className="report-section" style={{ marginTop: 24 }}>
+                                    <div className="report-section-header">ADDITIONAL PHOTOS</div>
+                                    <div className="report-photos" style={{ padding: 16, background: '#fff', border: '1px solid #e2e8f0', borderTop: 'none', gap: 12 }}>
+                                        {survey.globalPhotos.map((url, i) => {
+                                            const num = globalPhotoNum + i + 1;
+                                            return (
+                                                <div key={i} className="report-photo-wrap" style={{ display: 'inline-flex' }}>
+                                                    <img src={url} alt={`Additional Photo ${num}`} className="report-photo" style={{ width: 120, height: 120 }} />
+                                                    <span className="report-photo-label">Photo {num}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                         {/* Footer note */}
                         <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #e2e8f0', fontSize: 12, color: '#94a3b8' }}>
                             <p>This report was generated automatically based on the inspection data recorded. All photos are evidence of the property condition at the time of inspection.</p>

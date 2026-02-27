@@ -22,6 +22,7 @@ const SurveySchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
   },
   sections: [SectionSchema],
+  globalPhotos: [String],
   status: { type: String, enum: ['Draft', 'Completed'], default: 'Draft' }
 }, { timestamps: true });
 

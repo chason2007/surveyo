@@ -271,11 +271,38 @@ export default function SurveyEditor() {
                         >
                             <Plus size={14} /> Add Section
                         </button>
+
+                        <div
+                            className={`sidebar-item ${activeSection === 'global' ? 'active' : ''}`}
+                            style={{ borderTop: '1px solid var(--border)', marginTop: 'auto', background: 'rgba(0,0,0,0.2)' }}
+                            onClick={() => setActive('global')}
+                        >
+                            <div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent-teal)' }}>Global Photos</div>
+                                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                                    {(survey.globalPhotos || []).length} photos attached
+                                </div>
+                            </div>
+                        </div>
                     </aside>
 
                     {/* Main panel */}
                     <main>
-                        {!section ? (
+                        {activeSection === 'global' ? (
+                            <div className="empty-state" style={{ padding: '60px 40px', gridColumn: 'unset', textAlign: 'left' }}>
+                                <h2 style={{ fontSize: 24, marginBottom: 8, color: '#fff' }}>Global Photos</h2>
+                                <p style={{ fontSize: 15, color: 'var(--text-muted)', marginBottom: 32 }}>
+                                    Attach general property photos here that don't belong to a specific inspection room. These will appear at the end of the final report.
+                                </p>
+
+                                <div className="form-group">
+                                    <PhotoUploader
+                                        photos={survey.globalPhotos || []}
+                                        onChange={urls => updateSurvey({ ...survey, globalPhotos: urls })}
+                                    />
+                                </div>
+                            </div>
+                        ) : !section ? (
                             <div className="empty-state" style={{ padding: '80px 20px' }}>
                                 <div style={{
                                     width: 80, height: 80, borderRadius: '50%',
