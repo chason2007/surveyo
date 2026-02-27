@@ -1018,12 +1018,25 @@ select option {
   padding-top: 4px;
 }
 
+.report-photo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
 .report-photo {
   width: 80px;
   height: 60px;
   object-fit: cover;
   border-radius: 4px;
   border: 1px solid #e2e8f0;
+}
+
+.report-photo-label {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .report-status-good {
@@ -1054,4 +1067,249 @@ select option {
   font-size: 11px;
   font-weight: 700;
   display: inline-block;
+}
+
+/* ── Mobile Responsive ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+
+  /* Viewport meta safety */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Container padding */
+  .container {
+    padding: 0 16px;
+  }
+
+  /* Navbar */
+  .navbar {
+    height: 56px;
+  }
+
+  .navbar-brand span {
+    font-size: 16px;
+  }
+
+  .navbar-links a:not(.btn) {
+    display: none;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 36px 0 28px;
+  }
+
+  .hero h1 {
+    font-size: 26px;
+  }
+
+  .hero p {
+    font-size: 14px;
+  }
+
+  .hero-actions {
+    margin-top: 20px;
+  }
+
+  /* Survey grid — single column */
+  .survey-grid {
+    grid-template-columns: 1fr;
+    padding: 20px 0 40px;
+    gap: 14px;
+  }
+
+  /* Card actions stack */
+  .card-actions {
+    flex-wrap: wrap;
+  }
+
+  .card-actions .btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  /* Editor layout — stack sidebar above content */
+  .editor-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px 0 40px;
+  }
+
+  .sidebar {
+    position: static;
+    top: unset;
+  }
+
+  /* Sidebar items — horizontal scroll strip on mobile */
+  .sidebar {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .sidebar>div:not(.sidebar-header) {
+    display: inline-flex;
+    width: auto;
+    vertical-align: top;
+    white-space: normal;
+    min-width: 130px;
+  }
+
+  /* Status buttons — big tap targets */
+  .status-group {
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .status-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Item row header — wrap on small screens */
+  .item-row-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .item-label-input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Photo grid — larger thumbnails for fat fingers */
+  .photo-thumb,
+  .photo-upload-btn,
+  .uploading-spinner {
+    width: 90px;
+    height: 90px;
+  }
+
+  .photo-upload-btn {
+    font-size: 12px;
+    gap: 5px;
+  }
+
+  /* Form grid — single column */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid .form-group[style*="gridColumn"] {
+    grid-column: 1 !important;
+  }
+
+  /* Steps */
+  .steps {
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .step-item {
+    font-size: 13px;
+  }
+
+  /* Buttons full width in small forms */
+  .btn {
+    padding: 11px 18px;
+  }
+
+  .btn-sm {
+    padding: 8px 14px;
+  }
+
+  /* New Survey section picker grid */
+  .section-tags {
+    gap: 6px;
+  }
+
+  /* Report — hide table columns on mobile, show stacked */
+  .report-container {
+    margin: 16px auto;
+    border-radius: 8px;
+  }
+
+  .report-header {
+    padding: 24px 20px;
+  }
+
+  .report-body {
+    padding: 20px 16px;
+  }
+
+  .report-details-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .report-table thead {
+    display: none;
+  }
+
+  .report-table,
+  .report-table tbody,
+  .report-table tr,
+  .report-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .report-table tr {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+
+  .report-table td {
+    border: none;
+    padding: 4px 0;
+  }
+
+  .report-table td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .report-photos {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .report-photo {
+    width: 72px;
+    height: 54px;
+  }
+
+  /* Toast */
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+/* Medium screens (tablet) */
+@media (max-width: 960px) and (min-width: 641px) {
+  .editor-layout {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .survey-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
 }
