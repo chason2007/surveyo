@@ -131,6 +131,21 @@ export default function Dashboard() {
                                         <Trash2 size={14} />
                                     </button>
                                 </div>
+
+                                {/* Progress bar */}
+                                {(() => {
+                                    const allItems = s.sections?.flatMap(sec => sec.items) || [];
+                                    const filled = allItems.filter(i => i.status).length;
+                                    const total = allItems.length;
+                                    const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+                                    if (total === 0) return null;
+                                    return (
+                                        <div className="survey-progress">
+                                            <div className="survey-progress-bar" style={{ width: `${pct}%` }} />
+                                            <span className="survey-progress-label">{filled}/{total} filled</span>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         ))}
                     </div>

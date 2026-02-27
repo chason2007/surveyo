@@ -110,20 +110,85 @@ export default function ReportPreview() {
                             ))}
                         </div>
 
-                        {/* Status */}
-                        <div style={{ marginBottom: 24 }}>
-                            <span style={{
-                                display: 'inline-block',
-                                padding: '4px 14px',
-                                borderRadius: 20,
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: survey.status === 'Completed' ? '#dcfce7' : '#fef3c7',
-                                color: survey.status === 'Completed' ? '#15803d' : '#b45309'
-                            }}>
-                                {survey.status.toUpperCase()}
-                            </span>
-                        </div>
+                        {/* Summary stats */}
+                        {(() => {
+                            const allItems = survey.sections.flatMap(s => s.items);
+                            const total = allItems.length;
+                            const good = allItems.filter(i => i.status === 'Good').length;
+                            const flagged = allItems.filter(i => i.status === 'Need Action').length;
+                            const na = allItems.filter(i => i.status === 'N/A').length;
+                            return (
+                                <div className="report-stats-bar">
+                                    <div className="report-stat">
+                                        <span className="report-stat-num">{total}</span>
+                                        <span className="report-stat-label">Total Items</span>
+                                    </div>
+                                    <div className="report-stat report-stat--good">
+                                        <span className="report-stat-num">{good}</span>
+                                        <span className="report-stat-label">✓ Good</span>
+                                    </div>
+                                    <div className="report-stat report-stat--flagged">
+                                        <span className="report-stat-num">{flagged}</span>
+                                        <span className="report-stat-label">⚑ Need Action</span>
+                                    </div>
+                                    <div className="report-stat report-stat--na">
+                                        <span className="report-stat-num">{na}</span>
+                                        <span className="report-stat-label">N/A</span>
+                                    </div>
+                                    <span style={{
+                                        marginLeft: 'auto',
+                                        padding: '4px 14px',
+                                        borderRadius: 20,
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        background: survey.status === 'Completed' ? '#dcfce7' : '#fef3c7',
+                                        color: survey.status === 'Completed' ? '#15803d' : '#b45309'
+                                    }}>
+                                        {survey.status.toUpperCase()}
+                                    </span>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Flagged Items panel */}
+                        {(() => {
+                            const flaggedItems = [];
+                            survey.sections.forEach(section => {
+                                section.items.forEach(item => {
+                                    if (item.status === 'Need Action') {
+                                        flaggedItems.push({ section: section.roomName, item });
+                                    }
+                                });
+                            });
+                            if (flaggedItems.length === 0) return null;
+                            return (
+                                <div className="report-flagged">
+                                    <div className="report-flagged-header">
+                                        ⚑ Flagged Items
+                                        <span className="report-flagged-count">{flaggedItems.length} flagged</span>
+                                    </div>
+                                    {flaggedItems.map(({ section, item }, fi) => (
+                                        <div key={fi} className="report-flagged-item">
+                                            <div className="report-flagged-breadcrumb">Inspection / {section}</div>
+                                            <div className="report-flagged-question">{item.label}</div>
+                                            {item.comments && (
+                                                <div className="report-flagged-comment">{item.comments}</div>
+                                            )}
+                                            {item.photos && item.photos.length > 0 && (
+                                                <div className="report-photos" style={{ marginTop: 8 }}>
+                                                    {item.photos.map((url, pi) => (
+                                                        <div key={pi} className="report-photo-wrap">
+                                                            <img src={url} alt={`Photo`} className="report-photo" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
+
 
                         {/* Sections — global photo counter */}
                         {(() => {
