@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
-import { Camera, X, Loader } from 'lucide-react';
+import { Camera, X, Loader, Image } from 'lucide-react';
 import api from '../api/axios';
 
 export default function PhotoUploader({ photos = [], onChange }) {
     const [uploading, setUploading] = useState(false);
-    const inputRef = useRef();
+    const cameraRef = useRef();
+    const galleryRef = useRef();
 
-    const handleFileChange = async (e) => {
-        const files = Array.from(e.target.files);
+    const uploadFiles = async (files) => {
         if (!files.length) return;
         setUploading(true);
         try {
@@ -26,9 +26,12 @@ export default function PhotoUploader({ photos = [], onChange }) {
             console.error('Upload failed:', err);
         } finally {
             setUploading(false);
-            e.target.value = '';
+            if (cameraRef.current) cameraRef.current.value = '';
+            if (galleryRef.current) galleryRef.current.value = '';
         }
     };
+
+    const handleFiles = (e) => uploadFiles(Array.from(e.target.files));
 
     const removePhoto = (idx) => {
         onChange(photos.filter((_, i) => i !== idx));
@@ -51,27 +54,50 @@ export default function PhotoUploader({ photos = [], onChange }) {
 
             {uploading && (
                 <div className="uploading-spinner">
-                    <Loader size={18} className="spin-icon" style={{ animation: 'spin 0.8s linear infinite' }} />
+                    <Loader size={18} style={{ animation: 'spin 0.8s linear infinite' }} />
                 </div>
             )}
 
+            {/* Camera button — opens native camera on mobile */}
             <button
                 className="photo-upload-btn"
-                onClick={() => inputRef.current?.click()}
+                onClick={() => cameraRef.current?.click()}
                 disabled={uploading}
-                title="Upload photo"
+                title="Take photo"
             >
-                <Camera size={18} />
-                <span>Photo</span>
+                <Camera size={20} />
+                <span>Camera</span>
             </button>
 
+            {/* Gallery button — pick from library */}
+            <button
+                className="photo-upload-btn"
+                onClick={() => galleryRef.current?.click()}
+                disabled={uploading}
+                title="Choose from gallery"
+            >
+                <Image size={20} />
+                <span>Gallery</span>
+            </button>
+
+            {/* Camera capture input */}
             <input
-                ref={inputRef}
+                ref={cameraRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: 'none' }}
+                onChange={handleFiles}
+            />
+
+            {/* Gallery / file picker input */}
+            <input
+                ref={galleryRef}
                 type="file"
                 accept="image/*"
                 multiple
                 style={{ display: 'none' }}
-                onChange={handleFileChange}
+                onChange={handleFiles}
             />
         </div>
     );
