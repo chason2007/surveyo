@@ -203,6 +203,47 @@ router.get('/:id/report', async (req, res) => {
             y += 6;
         }
 
+        // ── GLOBAL PHOTOS ───────────────────────────────────────────────────
+        if (survey.globalPhotos && survey.globalPhotos.length > 0) {
+            y += 20;
+            if (y > 700) { doc.addPage(); y = PAGE_MARGIN; }
+
+            doc.rect(PAGE_MARGIN, y, usableWidth, 24).fill('#0f172a');
+            doc.fillColor('#38bdf8').fontSize(12).font('Helvetica-Bold')
+                .text('ADDITIONAL PHOTOS', PAGE_MARGIN + 10, y + 7);
+            y += 40;
+
+            const thumbW = 165;
+            const thumbH = 120;
+            const cols = 3;
+            let col = 0;
+
+            for (const photoUrl of survey.globalPhotos) {
+                if (col === 0 && y + thumbH > 760) {
+                    doc.addPage();
+                    y = PAGE_MARGIN + 20; // Extra padding at top of new page
+                }
+
+                const thumbX = PAGE_MARGIN + col * (thumbW + 15);
+                try {
+                    const imgBuf = await downloadImage(photoUrl);
+                    doc.image(imgBuf, thumbX, y, { width: thumbW, height: thumbH, cover: [thumbW, thumbH] });
+                    // subtle border
+                    doc.rect(thumbX, y, thumbW, thumbH).stroke('#e2e8f0');
+                } catch {
+                    // If image fails, draw a placeholder box
+                    doc.rect(thumbX, y, thumbW, thumbH).fill('#f1f5f9').stroke('#e2e8f0');
+                    doc.fillColor('#94a3b8').fontSize(7).text('Image unavailable', thumbX, y + thumbH / 2 - 5, { width: thumbW, align: 'center' });
+                }
+
+                col++;
+                if (col >= cols) {
+                    col = 0;
+                    y += thumbH + 15;
+                }
+            }
+        }
+
         // ── FOOTER ──────────────────────────────────────────────────────────
         const pageCount = doc.bufferedPageRange().count;
         for (let i = 0; i < pageCount; i++) {
