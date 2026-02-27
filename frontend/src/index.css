@@ -1069,6 +1069,218 @@ select option {
   display: inline-block;
 }
 
+/* ── Item row status accent borders ─────────────────────────────── */
+.item-row--good {
+  border-left: 3px solid var(--good);
+}
+
+.item-row--need-action {
+  border-left: 3px solid var(--need-action);
+}
+
+.item-row--na {
+  border-left: 3px solid var(--na);
+}
+
+/* ── Animated expand/collapse ────────────────────────────────────── */
+.item-expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+  overflow: hidden;
+}
+
+.item-expand>div {
+  overflow: hidden;
+}
+
+.item-expand--open {
+  grid-template-rows: 1fr;
+}
+
+/* ── Photo upload button color variants ──────────────────────────── */
+.photo-upload-btn:first-of-type {
+  border-color: rgba(56, 189, 248, 0.4);
+  color: var(--accent-blue);
+}
+
+.photo-upload-btn:first-of-type:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: var(--accent-blue);
+}
+
+.photo-upload-btn:last-of-type {
+  border-color: rgba(129, 140, 248, 0.4);
+  color: var(--accent-purple);
+}
+
+.photo-upload-btn:last-of-type:hover {
+  background: rgba(129, 140, 248, 0.1);
+  border-color: var(--accent-purple);
+}
+
+/* ── Dashboard progress bar ──────────────────────────────────────── */
+.survey-progress {
+  position: relative;
+  margin-top: 12px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.survey-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-teal));
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.survey-progress-label {
+  position: absolute;
+  right: 0;
+  top: -18px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Page fade-in ────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-wrapper {
+  animation: fadeIn 0.3s ease;
+}
+
+/* ── Report stats bar ────────────────────────────────────────────── */
+.report-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.report-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.report-stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.report-stat-label {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+.report-stat--good .report-stat-num {
+  color: #16a34a;
+}
+
+.report-stat--good {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.report-stat--flagged .report-stat-num {
+  color: #d97706;
+}
+
+.report-stat--flagged {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.report-stat--na .report-stat-num {
+  color: #64748b;
+}
+
+/* ── Report flagged items panel ──────────────────────────────────── */
+.report-flagged {
+  margin-bottom: 32px;
+  border: 1.5px solid #fca5a5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.report-flagged-header {
+  background: #fef2f2;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #dc2626;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #fca5a5;
+}
+
+.report-flagged-count {
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.report-flagged-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid #fee2e2;
+}
+
+.report-flagged-item:last-child {
+  border-bottom: none;
+}
+
+.report-flagged-breadcrumb {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.report-flagged-question {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.report-flagged-comment {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+
 /* ── Mobile Responsive ───────────────────────────────────────────── */
 @media (max-width: 640px) {
 
