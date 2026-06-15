@@ -5,16 +5,21 @@ const https = require('https');
 const http = require('http');
 const Survey = require('../models/Survey');
 
-// Helper: download image from URL into a Buffer
+// Helper: download image from URL into a Buffer with a 10s timeout
 function downloadImage(url) {
     return new Promise((resolve, reject) => {
         const protocol = url.startsWith('https') ? https : http;
-        protocol.get(url, (res) => {
+        const req = protocol.get(url, (res) => {
             const chunks = [];
             res.on('data', (chunk) => chunks.push(chunk));
             res.on('end', () => resolve(Buffer.concat(chunks)));
             res.on('error', reject);
-        }).on('error', reject);
+        });
+        req.on('error', reject);
+        req.setTimeout(10000, () => {
+            req.destroy();
+            reject(new Error('Image download timed out'));
+        });
     });
 }
 

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, User, MapPin, Home, Plus, X, CheckCircle, ChevronRight } from 'lucide-react';
+import { 
+    Building2, User, MapPin, Home, Plus, X, CheckCircle, ChevronRight, 
+    Tv, ChefHat, Bed, Bath, Compass, Car, Trash2, MessageSquare, Clipboard, ArrowLeft
+} from 'lucide-react';
 import api from '../api/axios';
 
 const DEFAULT_SECTIONS = [
@@ -8,6 +11,22 @@ const DEFAULT_SECTIONS = [
     'Bedroom 1', 'Bedroom 2', 'Master Bedroom', 'Bathroom 1',
     'Bathroom 2', 'Balcony', 'Parking', 'Store Room', 'General Comments'
 ];
+
+const SECTION_ICONS = {
+    'Entry / Foyer': Home,
+    'Living Room': Tv,
+    'Dining Room': Home,
+    'Kitchen': ChefHat,
+    'Bedroom 1': Bed,
+    'Bedroom 2': Bed,
+    'Master Bedroom': Bed,
+    'Bathroom 1': Bath,
+    'Bathroom 2': Bath,
+    'Balcony': Compass,
+    'Parking': Car,
+    'Store Room': Trash2,
+    'General Comments': MessageSquare
+};
 
 const DEFAULT_ITEMS = {
     'Kitchen': ['Ceiling', 'Walls', 'Floor', 'Cabinets', 'Countertop', 'Sink', 'Appliances', 'Windows', 'Electrical Points'],
@@ -45,7 +64,7 @@ export default function NewSurvey() {
 
     const [details, setDetails] = useState({
         unitNumber: '', buildingName: '', address: '',
-        propertyType: '', inspector: '', date: new Date().toISOString().split('T')[0]
+        propertyType: '', inspector: '', client: '', date: new Date().toISOString().split('T')[0]
     });
 
     const [sections, setSections] = useState([]);
@@ -86,7 +105,7 @@ export default function NewSurvey() {
             navigate(`/surveys/${data._id}/edit`);
         } catch (e) {
             console.error(e);
-            alert('Failed to create survey. Check console.');
+            alert('Failed to create survey.');
         } finally {
             setSaving(false);
         }
@@ -97,65 +116,109 @@ export default function NewSurvey() {
             {/* Hero */}
             <section className="hero">
                 <div className="container hero-content">
-                    <div className="hero-eyebrow"><Home size={12} /> NEW SURVEY</div>
+                    <div className="hero-eyebrow"><Clipboard size={12} /> CONFIGURATION WIZARD</div>
                     <h1>Create Property Survey</h1>
-                    <p>Enter property details and select the rooms/sections to inspect.</p>
+                    <p>Enter the property specifications and designate specific rooms or exterior structures for inspection.</p>
                 </div>
             </section>
 
-            <div className="container" style={{ paddingTop: 32, paddingBottom: 60 }}>
-                {/* Steps */}
-                <div className="steps">
-                    <div className={`step-item ${step >= 1 ? (step > 1 ? 'done' : 'active') : ''}`}>
-                        <div className="step-num">{step > 1 ? <CheckCircle size={14} /> : '1'}</div>
-                        Property Details
+            <div className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
+                {/* Step Indicators */}
+                <div className="steps" style={{ maxWidth: 800, margin: '0 auto 40px' }}>
+                    <div 
+                        className={`step-item ${step >= 1 ? (step > 1 ? 'done' : 'active') : ''}`}
+                        onClick={() => step > 1 && setStep(1)}
+                        style={{ cursor: step > 1 ? 'pointer' : 'default' }}
+                    >
+                        <div className="step-num">{step > 1 ? <CheckCircle size={15} /> : '1'}</div>
+                        <span>Property Details</span>
                     </div>
                     <div className="step-divider" />
                     <div className={`step-item ${step >= 2 ? 'active' : ''}`}>
                         <div className="step-num">2</div>
-                        Select Sections
+                        <span>Select Inspection Rooms</span>
                     </div>
                 </div>
 
                 {step === 1 && (
-                    <div className="card" style={{ padding: 28, maxWidth: 720 }}>
+                    <div className="card" style={{ padding: 36, maxWidth: 800, margin: '0 auto' }}>
                         <div className="section-title">Property Details</div>
-                        <div className="form-grid" style={{ gap: 20 }}>
+                        <div className="form-grid">
                             <div className="form-group">
                                 <label className="form-label">Unit / Property No. *</label>
-                                <input value={details.unitNumber} onChange={e => setDetail('unitNumber', e.target.value)} placeholder="e.g. Unit 4B" />
+                                <input 
+                                    value={details.unitNumber} 
+                                    onChange={e => setDetail('unitNumber', e.target.value)} 
+                                    placeholder="e.g. Suite 402, Unit 12B" 
+                                />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Building / Complex Name</label>
-                                <input value={details.buildingName} onChange={e => setDetail('buildingName', e.target.value)} placeholder="e.g. Sunridge Apartments" />
+                                <input 
+                                    value={details.buildingName} 
+                                    onChange={e => setDetail('buildingName', e.target.value)} 
+                                    placeholder="e.g. Oakridge Residencies" 
+                                />
                             </div>
                             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                                <label className="form-label"><MapPin size={13} style={{ marginRight: 4 }} /> Address</label>
-                                <input value={details.address} onChange={e => setDetail('address', e.target.value)} placeholder="Full property address" />
+                                <label className="form-label">Property Address</label>
+                                <div style={{ position: 'relative' }}>
+                                    <MapPin size={16} style={{ position: 'absolute', left: 14, top: 14, color: 'var(--text-muted)' }} />
+                                    <input 
+                                        value={details.address} 
+                                        onChange={e => setDetail('address', e.target.value)} 
+                                        placeholder="Full address of the property" 
+                                        style={{ paddingLeft: 42 }}
+                                    />
+                                </div>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Property Type</label>
+                                <label className="form-label">Property Classification</label>
                                 <select value={details.propertyType} onChange={e => setDetail('propertyType', e.target.value)}>
-                                    <option value="">Select type…</option>
+                                    <option value="">Select Class...</option>
                                     <option>Apartment</option>
                                     <option>Villa</option>
                                     <option>Townhouse</option>
-                                    <option>Office</option>
-                                    <option>Retail</option>
+                                    <option>Office Space</option>
+                                    <option>Retail Store</option>
                                     <option>Warehouse</option>
                                     <option>Other</option>
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label className="form-label"><User size={13} style={{ marginRight: 4 }} /> Inspector Name</label>
-                                <input value={details.inspector} onChange={e => setDetail('inspector', e.target.value)} placeholder="Full name" />
+                                <label className="form-label">Inspector Name</label>
+                                <div style={{ position: 'relative' }}>
+                                    <User size={16} style={{ position: 'absolute', left: 14, top: 14, color: 'var(--text-muted)' }} />
+                                    <input 
+                                        value={details.inspector} 
+                                        onChange={e => setDetail('inspector', e.target.value)} 
+                                        placeholder="Inspector's full name" 
+                                        style={{ paddingLeft: 42 }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Client Name</label>
+                                <div style={{ position: 'relative' }}>
+                                    <User size={16} style={{ position: 'absolute', left: 14, top: 14, color: 'var(--text-muted)' }} />
+                                    <input 
+                                        value={details.client} 
+                                        onChange={e => setDetail('client', e.target.value)} 
+                                        placeholder="Client or Company Name" 
+                                        style={{ paddingLeft: 42 }}
+                                    />
+                                </div>
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Inspection Date</label>
                                 <input type="date" value={details.date} onChange={e => setDetail('date', e.target.value)} />
                             </div>
                         </div>
-                        <div style={{ marginTop: 28, display: 'flex', justifyContent: 'flex-end' }}>
+                        
+                        <div style={{ marginTop: 36, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <button className="btn btn-secondary" onClick={() => navigate('/')}>
+                                <ArrowLeft size={16} /> Back to Dashboard
+                            </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={() => {
@@ -170,49 +233,53 @@ export default function NewSurvey() {
                 )}
 
                 {step === 2 && (
-                    <div style={{ maxWidth: 800 }}>
-                        <div className="card" style={{ padding: 28 }}>
-                            <div className="section-title">Select Rooms / Sections</div>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 }}>
-                                Click to toggle sections. Each section gets default inspection items which you can edit later.
+                    <div style={{ maxWidth: 840, margin: '0 auto' }}>
+                        <div className="card" style={{ padding: 36 }}>
+                            <div className="section-title">Designate Rooms & Structures</div>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28 }}>
+                                Choose which rooms, spaces, and sections require inspection. Each section is automatically configured with recommended checklists.
                             </p>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 10 }}>
+                            
+                            <div className="rooms-grid">
                                 {DEFAULT_SECTIONS.map(name => {
                                     const active = !!sections.find(s => s.roomName === name);
+                                    const IconComponent = SECTION_ICONS[name] || Home;
                                     return (
                                         <button
                                             key={name}
-                                            className={`btn ${active ? 'btn-primary' : 'btn-secondary'}`}
-                                            style={{ justifyContent: 'center' }}
+                                            className={`room-selection-card ${active ? 'active' : ''}`}
                                             onClick={() => toggleSection(name)}
                                         >
-                                            {active && <CheckCircle size={14} />}
-                                            {name}
+                                            <IconComponent size={20} />
+                                            <span>{name}</span>
                                         </button>
                                     );
                                 })}
                             </div>
 
-                            {/* Custom section */}
+                            {/* Custom Section Form */}
                             <div className="divider" />
-                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                                <input
-                                    value={customSection}
-                                    onChange={e => setCustomSection(e.target.value)}
-                                    placeholder="Add custom room/section…"
-                                    onKeyDown={e => e.key === 'Enter' && addCustomSection()}
-                                    style={{ flex: 1 }}
-                                />
-                                <button className="btn btn-secondary" onClick={addCustomSection}>
-                                    <Plus size={15} /> Add
-                                </button>
+                            <div className="form-group">
+                                <label className="form-label">Need custom rooms?</label>
+                                <div style={{ display: 'flex', gap: 12 }}>
+                                    <input
+                                        value={customSection}
+                                        onChange={e => setCustomSection(e.target.value)}
+                                        placeholder="Enter custom room name (e.g. Attic, Sunroom)..."
+                                        onKeyDown={e => e.key === 'Enter' && addCustomSection()}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <button className="btn btn-secondary" onClick={addCustomSection}>
+                                        <Plus size={16} /> Add Room
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Selected sections chips */}
+                            {/* Selected Counter & Chips */}
                             {sections.length > 0 && (
                                 <>
-                                    <div style={{ marginTop: 20, fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-                                        SELECTED ({sections.length})
+                                    <div style={{ marginTop: 32, fontSize: 12, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.06em' }}>
+                                        SELECTED RECORD AREAS ({sections.length})
                                     </div>
                                     <div className="section-tags">
                                         {sections.map(s => (
@@ -226,7 +293,7 @@ export default function NewSurvey() {
                             )}
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
                             <button className="btn btn-secondary" onClick={() => setStep(1)}>
                                 Back
                             </button>
@@ -235,7 +302,7 @@ export default function NewSurvey() {
                                 onClick={handleCreate}
                                 disabled={saving || sections.length === 0}
                             >
-                                {saving ? 'Creating…' : `Create Survey & Open Editor`}
+                                {saving ? 'Creating Survey...' : `Confirm & Open Inspector`}
                                 {!saving && <ChevronRight size={16} />}
                             </button>
                         </div>

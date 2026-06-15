@@ -3,8 +3,13 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+const required = ['MONGO_URI', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
+required.forEach(k => {
+  if (!process.env[k]) throw new Error(`Missing required env var: ${k}`);
+});
+
 const app = express();
-app.use(cors());
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173' }));
 app.use(express.json());
 
 // Routes

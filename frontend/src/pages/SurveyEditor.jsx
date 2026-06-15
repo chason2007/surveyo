@@ -2,100 +2,125 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     Save, Plus, Trash2, FileText, ArrowLeft,
-    ChevronDown, ChevronUp, CheckCircle
+    ChevronDown, Check, AlertTriangle, EyeOff, Sparkles, CheckCircle
 } from 'lucide-react';
 import api from '../api/axios';
 import PhotoUploader from '../components/PhotoUploader';
+import ConfirmModal from '../components/ConfirmModal';
+import InputModal from '../components/InputModal';
+
+const LOCAL_KEY = (id) => `surveyo_draft_${id}`;
+
+function newItemId() {
+    return typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2);
+}
 
 function ItemRow({ item, onChange, onDelete }) {
-    const [expanded, setExpanded] = useState(false);
-
     const setStatus = (s) => onChange({ ...item, status: s });
     const setField = (k, v) => onChange({ ...item, [k]: v });
 
-    const statusKey = item.status === 'Good' ? 'good'
-        : item.status === 'Need Action' ? 'need-action'
+    const statusClass = item.status === 'Good' ? 'good'
+        : item.status === 'Need Action' ? 'action'
             : item.status === 'N/A' ? 'na' : '';
 
     return (
-        <div className={`item-row${statusKey ? ` item-row--${statusKey}` : ''}`}>
-            <div className="item-row-header">
+        <div className={`dense-item-card ${statusClass}`}>
+            <div className="dense-item-header">
                 <input
-                    className="item-label-input"
+                    className="dense-item-label-input"
                     value={item.label}
                     onChange={e => setField('label', e.target.value)}
-                    placeholder="Item name (e.g. Ceiling)"
-                    style={{ background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', borderRadius: 0, padding: '4px 0' }}
+                    placeholder="Checklist Item (e.g., Walls, Ceiling)..."
                 />
 
-                <div className="status-group">
-                    {['Good', 'Need Action', 'N/A'].map(s => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="dense-btn-group">
                         <button
-                            key={s}
-                            className={`status-btn ${s === 'Good' ? 'good' : s === 'Need Action' ? 'need-action' : 'na'} ${item.status === s ? 'active' : ''}`}
-                            onClick={() => setStatus(item.status === s ? '' : s)}
+                            type="button"
+                            className={`dense-toggle-btn good ${item.status === 'Good' ? 'active' : ''}`}
+                            onClick={() => setStatus(item.status === 'Good' ? '' : 'Good')}
                         >
-                            {s}
+                            <Check size={10} />
+                            <span>Good</span>
                         </button>
-                    ))}
+                        
+                        <button
+                            type="button"
+                            className={`dense-toggle-btn action ${item.status === 'Need Action' ? 'active' : ''}`}
+                            onClick={() => setStatus(item.status === 'Need Action' ? '' : 'Need Action')}
+                        >
+                            <AlertTriangle size={10} />
+                            <span>Action</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`dense-toggle-btn na ${item.status === 'N/A' ? 'active' : ''}`}
+                            onClick={() => setStatus(item.status === 'N/A' ? '' : 'N/A')}
+                        >
+                            <EyeOff size={10} />
+                            <span>N/A</span>
+                        </button>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="dense-delete-item-btn"
+                        onClick={onDelete}
+                        title="Delete checklist item"
+                    >
+                        <Trash2 size={12} />
+                    </button>
                 </div>
-
-                <button
-                    className="btn btn-ghost btn-icon"
-                    onClick={() => setExpanded(e => !e)}
-                    title="Expand"
-                >
-                    {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                </button>
-
-                <button className="btn btn-danger btn-icon" onClick={onDelete} title="Remove item">
-                    <Trash2 size={14} />
-                </button>
             </div>
 
-            <div className={`item-expand${expanded ? ' item-expand--open' : ''}`}>
-                <div style={{ paddingLeft: 4, paddingTop: 12 }}>
-                    <div className="form-group" style={{ marginBottom: 12 }}>
-                        <label className="form-label">Comments</label>
-                        <textarea
-                            rows={2}
-                            value={item.comments}
-                            onChange={e => setField('comments', e.target.value)}
-                            placeholder="Add notes or observations…"
-                            style={{ resize: 'vertical' }}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Photos</label>
-                        <PhotoUploader
-                            photos={item.photos}
-                            onChange={urls => setField('photos', urls)}
-                        />
-                    </div>
-                </div>
+            <div className="dense-details-area">
+                <textarea
+                    className="dense-textarea"
+                    rows={1}
+                    value={item.comments || ''}
+                    onChange={e => setField('comments', e.target.value)}
+                    placeholder="Remarks / Defect feedback..."
+                    style={{ minHeight: '32px' }}
+                />
+                
+                <PhotoUploader
+                    photos={item.photos || []}
+                    onChange={urls => setField('photos', urls)}
+                />
             </div>
         </div>
     );
 }
 
-const DEFAULT_ITEM = { label: '', status: '', photos: [], comments: '' };
+const DEFAULT_ITEM = () => ({ _itemId: newItemId(), label: '', status: '', photos: [], comments: '' });
 
 export default function SurveyEditor() {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [survey, setSurvey] = useState(null);
-    const [activeSection, setActive] = useState(0);
+    const [expandedSection, setExpandedSection] = useState(0);
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
+    const [inputModal, setInputModal] = useState(null);     // { title, placeholder, onConfirm }
     const saveTimer = useRef(null);
+    const isMounted = useRef(true);
 
     useEffect(() => {
+        isMounted.current = true;
         api.get(`/api/surveys/${id}`)
-            .then(({ data }) => { setSurvey(data); })
-            .catch(() => navigate('/'))
-            .finally(() => setLoading(false));
+            .then(({ data }) => { if (isMounted.current) setSurvey(data); })
+            .catch(() => { if (isMounted.current) navigate('/'); })
+            .finally(() => { if (isMounted.current) setLoading(false); });
+        return () => {
+            isMounted.current = false;
+            if (saveTimer.current) clearTimeout(saveTimer.current);
+        };
     }, [id, navigate]);
 
     const showToast = (msg, type = 'success') => {
@@ -106,10 +131,16 @@ export default function SurveyEditor() {
     const scheduleSave = useCallback((updatedSurvey) => {
         if (saveTimer.current) clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(async () => {
+            if (!isMounted.current) return;
             try {
                 await api.put(`/api/surveys/${id}`, updatedSurvey);
-                showToast('Saved automatically');
-            } catch { showToast('Auto-save failed', 'error'); }
+                localStorage.removeItem(LOCAL_KEY(id));
+                if (isMounted.current) showToast('Auto-saved');
+            } catch {
+                // Save to localStorage as a real fallback
+                try { localStorage.setItem(LOCAL_KEY(id), JSON.stringify(updatedSurvey)); } catch {}
+                if (isMounted.current) showToast('Server unreachable — saved locally', 'error');
+            }
         }, 1500);
     }, [id]);
 
@@ -118,267 +149,546 @@ export default function SurveyEditor() {
         scheduleSave(updated);
     };
 
-    const saveNow = async () => {
-        if (saveTimer.current) clearTimeout(saveTimer.current);
-        setSaving(true);
-        try {
-            await api.put(`/api/surveys/${id}`, survey);
-            showToast('Survey saved!');
-        } catch { showToast('Save failed', 'error'); }
-        finally { setSaving(false); }
+    const updatePropertyDetails = (key, value) => {
+        const pd = { ...survey.propertyDetails, [key]: value };
+        updateSurvey({ ...survey, propertyDetails: pd });
     };
 
-    const updateSection = (secIdx, updated) => {
+    const addItem = (secIdx) => {
         const sections = [...survey.sections];
-        sections[secIdx] = updated;
-        updateSurvey({ ...survey, sections });
-    };
-
-    const addItem = () => {
-        const sections = [...survey.sections];
-        sections[activeSection] = {
-            ...sections[activeSection],
-            items: [...sections[activeSection].items, { ...DEFAULT_ITEM }]
+        sections[secIdx] = {
+            ...sections[secIdx],
+            items: [...sections[secIdx].items, DEFAULT_ITEM()]
         };
         updateSurvey({ ...survey, sections });
     };
 
-    const updateItem = (itemIdx, updated) => {
+    const updateItem = (secIdx, itemIdx, updated) => {
         const sections = [...survey.sections];
-        const items = [...sections[activeSection].items];
+        const items = [...sections[secIdx].items];
         items[itemIdx] = updated;
-        sections[activeSection] = { ...sections[activeSection], items };
+        sections[secIdx] = { ...sections[secIdx], items };
         updateSurvey({ ...survey, sections });
     };
 
-    const deleteItem = (itemIdx) => {
+    const deleteItem = (secIdx, itemIdx) => {
         const sections = [...survey.sections];
-        sections[activeSection] = {
-            ...sections[activeSection],
-            items: sections[activeSection].items.filter((_, i) => i !== itemIdx)
+        sections[secIdx] = {
+            ...sections[secIdx],
+            items: sections[secIdx].items.filter((_, i) => i !== itemIdx)
         };
         updateSurvey({ ...survey, sections });
     };
 
     const addSection = () => {
-        const name = prompt('Enter new section/room name:')?.trim();
-        if (!name) return;
-        const sections = [...survey.sections, { roomName: name, items: [] }];
-        updateSurvey({ ...survey, sections });
-        setActive(sections.length - 1);
+        setInputModal({
+            title: 'New Room Section',
+            placeholder: 'e.g. Living Room, Kitchen...',
+            onConfirm: (name) => {
+                setInputModal(null);
+                const sections = [...survey.sections, { roomName: name, items: [] }];
+                updateSurvey({ ...survey, sections });
+                setExpandedSection(sections.length - 1);
+            }
+        });
     };
 
     const deleteSection = (secIdx) => {
-        if (!confirm('Remove this section?')) return;
-        const sections = survey.sections.filter((_, i) => i !== secIdx);
-        updateSurvey({ ...survey, sections });
-        if (activeSection >= sections.length) setActive(Math.max(0, sections.length - 1));
+        setConfirmModal({
+            message: `Remove the "${survey.sections[secIdx].roomName}" section and all its items?`,
+            onConfirm: () => {
+                setConfirmModal(null);
+                const sections = survey.sections.filter((_, i) => i !== secIdx);
+                updateSurvey({ ...survey, sections });
+                if (expandedSection >= sections.length) {
+                    setExpandedSection(Math.max(0, sections.length - 1));
+                }
+            }
+        });
     };
 
     if (loading) return (
         <div className="loading-screen">
             <div className="spinner" />
-            <span>Loading survey…</span>
+            <span>Loading property workspace...</span>
         </div>
     );
 
     if (!survey) return null;
 
-    const section = survey.sections[activeSection];
-    const pd = survey.propertyDetails;
+    const pd = survey.propertyDetails || {};
 
-    const sectionSummary = (items) => {
+    // Live statistics computation
+    const allItems = survey.sections?.flatMap(s => s.items) || [];
+    const totalItems = allItems.length;
+    const goodItems = allItems.filter(i => i.status === 'Good').length;
+    const actionItems = allItems.filter(i => i.status === 'Need Action').length;
+
+    const sectionSummary = (items = []) => {
         const good = items.filter(i => i.status === 'Good').length;
         const action = items.filter(i => i.status === 'Need Action').length;
-        return { good, action, total: items.length };
+        const na = items.filter(i => i.status === 'N/A').length;
+        return { good, action, na, total: items.length };
     };
+
+    const formatDate = (d) =>
+        d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
     return (
         <div className="page-wrapper">
-            {/* Top bar */}
+            {/* Anchored Top SaaS Header Bar */}
             <div style={{
-                background: 'var(--bg-surface)',
+                background: 'rgba(11, 15, 25, 0.85)',
+                backdropFilter: 'blur(20px)',
                 borderBottom: '1px solid var(--border)',
-                padding: '14px 0'
+                padding: '12px 0',
+                position: 'sticky',
+                top: 72,
+                zIndex: 90
             }}>
-                <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                    <button className="btn btn-ghost" onClick={() => navigate('/')}>
-                        <ArrowLeft size={16} /> Back
-                    </button>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: 17 }}>
-                            {pd.unitNumber || 'Survey'} — {pd.buildingName}
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                            Inspector: {pd.inspector || '—'} &nbsp;|&nbsp; {pd.address || ''}
+                <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => navigate('/')} style={{ padding: '8px 12px' }}>
+                            <ArrowLeft size={14} /> Back
+                        </button>
+                        <div>
+                            <div style={{ fontWeight: 800, fontSize: '15px', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span>{pd.unitNumber || 'Property Workspace'}</span>
+                                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>·</span>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{pd.buildingName || 'Condition Survey'}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <select
-                        value={survey.status}
-                        onChange={e => updateSurvey({ ...survey, status: e.target.value })}
-                        style={{ width: 'auto', padding: '8px 14px' }}
-                    >
-                        <option>Draft</option>
-                        <option>Completed</option>
-                    </select>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>STATUS:</span>
+                            <select
+                                value={survey.status}
+                                onChange={e => updateSurvey({ ...survey, status: e.target.value })}
+                                style={{ width: 'auto', padding: '6px 24px 6px 12px', fontSize: '12px', background: 'rgba(3, 7, 18, 0.4)' }}
+                            >
+                                <option>Draft</option>
+                                <option>Completed</option>
+                            </select>
+                        </div>
 
-                    <button className="btn btn-secondary" onClick={() => navigate(`/surveys/${id}/report`)}>
-                        <FileText size={15} /> View Report
-                    </button>
-                    <button className="btn btn-primary" onClick={saveNow} disabled={saving}>
-                        <Save size={15} /> {saving ? 'Saving…' : 'Save'}
-                    </button>
+                        <button className="btn btn-primary btn-sm" onClick={() => navigate(`/surveys/${id}/report`)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <FileText size={14} />
+                            <span>Generate PDF Report</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            {/* Split Workspace Layout */}
             <div className="container">
-                <div className="editor-layout">
-                    {/* Sidebar */}
-                    <aside className="sidebar">
-                        <div className="sidebar-header">SECTIONS ({survey.sections.length})</div>
-                        {survey.sections.map((sec, i) => {
-                            const { good, action, total } = sectionSummary(sec.items);
-                            return (
-                                <div
-                                    key={i}
-                                    className={`sidebar-item ${i === activeSection ? 'active' : ''}`}
-                                    onClick={() => setActive(i)}
-                                >
-                                    <div>
-                                        <div style={{ fontSize: 14 }}>{sec.roomName}</div>
-                                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                                            {total} items
-                                            {good > 0 && <span style={{ color: 'var(--good)', marginLeft: 6 }}>✓{good}</span>}
-                                            {action > 0 && <span style={{ color: 'var(--need-action)', marginLeft: 6 }}>⚑{action}</span>}
-                                        </div>
-                                    </div>
-                                    <button
-                                        className="btn btn-ghost btn-icon"
-                                        style={{ padding: 4, opacity: 0.5 }}
-                                        onClick={(e) => { e.stopPropagation(); deleteSection(i); }}
-                                        title="Remove section"
-                                    >
-                                        <Trash2 size={12} />
-                                    </button>
-                                </div>
-                            );
-                        })}
-                        <button
-                            className="btn btn-ghost"
-                            style={{ width: '100%', padding: '12px 16px', borderTop: '1px solid var(--border)', borderRadius: 0, justifyContent: 'flex-start', gap: 8, color: 'var(--text-muted)' }}
-                            onClick={addSection}
-                        >
-                            <Plus size={14} /> Add Section
-                        </button>
-
-                        <div
-                            className={`sidebar-item ${activeSection === 'global' ? 'active' : ''}`}
-                            style={{ borderTop: '1px solid var(--border)', marginTop: 'auto', background: 'rgba(0,0,0,0.2)' }}
-                            onClick={() => setActive('global')}
-                        >
-                            <div>
-                                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent-teal)' }}>Global Photos</div>
-                                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                                    {(survey.globalPhotos || []).length} photos attached
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-
-                    {/* Main panel */}
-                    <main>
-                        {activeSection === 'global' ? (
-                            <div className="empty-state" style={{ padding: '60px 40px', gridColumn: 'unset', textAlign: 'left' }}>
-                                <h2 style={{ fontSize: 24, marginBottom: 8, color: '#fff' }}>Global Photos</h2>
-                                <p style={{ fontSize: 15, color: 'var(--text-muted)', marginBottom: 32 }}>
-                                    Attach general property photos here that don't belong to a specific inspection room. These will appear at the end of the final report.
-                                </p>
-
+                <div className="split-workspace">
+                    
+                    {/* Left Pane: Configuration and Data Entry */}
+                    <div className="input-pane">
+                        
+                        {/* 1. Property Metadata Panel */}
+                        <div className="card" style={{ padding: '20px', border: '1px solid var(--border)' }}>
+                            <div className="section-title" style={{ fontSize: '15px', marginBottom: '16px' }}>Property Specifications</div>
+                            
+                            <div className="form-grid" style={{ gap: '12px 16px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
                                 <div className="form-group">
-                                    <PhotoUploader
-                                        photos={survey.globalPhotos || []}
-                                        onChange={urls => updateSurvey({ ...survey, globalPhotos: urls })}
+                                    <label className="form-label" style={{ fontSize: '10.5px' }}>Property / Unit No. *</label>
+                                    <input 
+                                        value={pd.unitNumber} 
+                                        onChange={e => updatePropertyDetails('unitNumber', e.target.value)} 
+                                        placeholder="e.g. Unit 302" 
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: '10.5px' }}>Building / Complex</label>
+                                    <input 
+                                        value={pd.buildingName} 
+                                        onChange={e => updatePropertyDetails('buildingName', e.target.value)} 
+                                        placeholder="e.g. Sky Tower" 
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: '10.5px' }}>Property Type</label>
+                                    <select 
+                                        value={pd.propertyType} 
+                                        onChange={e => updatePropertyDetails('propertyType', e.target.value)}
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
+                                    >
+                                        <option value="">Select...</option>
+                                        <option>Apartment</option>
+                                        <option>Villa</option>
+                                        <option>Townhouse</option>
+                                        <option>Office Space</option>
+                                        <option>Retail Store</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: '10.5px' }}>Client Name</label>
+                                    <input 
+                                        value={pd.client || ''} 
+                                        onChange={e => updatePropertyDetails('client', e.target.value)} 
+                                        placeholder="Company / Client Name" 
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
+                                    />
+                                </div>
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                    <label className="form-label" style={{ fontSize: '10.5px' }}>Full Site Address</label>
+                                    <input 
+                                        value={pd.address} 
+                                        onChange={e => updatePropertyDetails('address', e.target.value)} 
+                                        placeholder="Site physical address" 
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: '10.5px' }}>Lead Inspector</label>
+                                    <input 
+                                        value={pd.inspector} 
+                                        onChange={e => updatePropertyDetails('inspector', e.target.value)} 
+                                        placeholder="Inspector's name" 
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label" style={{ fontSize: '10.5px' }}>Inspection Date</label>
+                                    <input 
+                                        type="date" 
+                                        value={pd.date ? pd.date.split('T')[0] : ''} 
+                                        onChange={e => updatePropertyDetails('date', e.target.value)} 
+                                        style={{ padding: '8px 12px', fontSize: '13px' }}
                                     />
                                 </div>
                             </div>
-                        ) : !section ? (
-                            <div className="empty-state" style={{ padding: '80px 20px' }}>
-                                <div style={{
-                                    width: 80, height: 80, borderRadius: '50%',
-                                    background: 'rgba(56, 189, 248, 0.1)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    margin: '0 auto 24px', boxShadow: '0 0 30px rgba(56,189,248,0.2)'
-                                }}>
-                                    <FileText size={40} color="var(--accent-blue)" />
-                                </div>
-                                <h3 style={{ fontSize: 22, marginBottom: 8, color: '#fff' }}>No sections yet</h3>
-                                <p style={{ fontSize: 15, color: 'var(--text-muted)' }}>Use the sidebar to add sections or rooms to inspect.</p>
-                                <button className="btn btn-primary" style={{ marginTop: 24, display: 'inline-flex', padding: '10px 20px', fontSize: 14 }} onClick={addSection}>
-                                    <Plus size={16} /> Add First Section
+                        </div>
+
+                        {/* 2. Room Categorized Accordion Panels */}
+                        <div className="card" style={{ padding: '20px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="section-title" style={{ fontSize: '15px', marginBottom: 0 }}>Inspection Records</div>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={addSection}
+                                    style={{ padding: '5px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-primary)', border: '1px dashed var(--border)' }}
+                                >
+                                    <Plus size={12} /> Add Section
                                 </button>
                             </div>
-                        ) : (
-                            <>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                                    <div className="section-title" style={{ marginBottom: 0 }}>
-                                        {section.roomName}
+
+                            {survey.sections?.length === 0 && (
+                                <div className="empty-state" style={{ padding: '30px 10px', textAlign: 'center' }}>
+                                    <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No inspection sections added yet.</p>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary btn-sm"
+                                        onClick={addSection}
+                                        style={{ marginTop: '8px', fontSize: '11px' }}
+                                    >
+                                        Create First Section
+                                    </button>
+                                </div>
+                            )}
+
+                            <div className="accordion-wrapper">
+                                {survey.sections?.map((sec, secIdx) => {
+                                    const { good, action, na, total } = sectionSummary(sec.items);
+                                    const isComplete = total > 0 && (good + action + na === total);
+                                    const hasPhotos = sec.items.some(i => i.photos && i.photos.length > 0);
+                                    const isActive = expandedSection === secIdx;
+
+                                    return (
+                                        <div key={secIdx} className={`accordion-item ${isActive ? 'active' : ''}`}>
+                                            <div className="accordion-header" onClick={() => setExpandedSection(isActive ? null : secIdx)}>
+                                                <div className="accordion-header-left">
+                                                    <ChevronDown size={14} className="accordion-chevron" />
+                                                    <span className="accordion-title">{sec.roomName}</span>
+                                                    <span style={{ color: 'var(--text-muted)', fontSize: '10.5px' }}>({total})</span>
+                                                </div>
+
+                                                <div className="accordion-header-right">
+                                                    {isComplete ? (
+                                                        <span className="accordion-badge complete">✓ Complete</span>
+                                                    ) : total > 0 ? (
+                                                        <span className="accordion-badge incomplete">{good + action + na}/{total} Checked</span>
+                                                    ) : null}
+
+                                                    {hasPhotos && (
+                                                        <span className="accordion-badge images">📷 Media</span>
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        className="accordion-delete-btn"
+                                                        onClick={(e) => { e.stopPropagation(); deleteSection(secIdx); }}
+                                                        title="Delete Section"
+                                                    >
+                                                        <Trash2 size={11} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {isActive && (
+                                                <div className="accordion-body">
+                                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                                                            <label style={{ fontSize: '9.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rename:</label>
+                                                            <input
+                                                                value={sec.roomName}
+                                                                onChange={e => {
+                                                                    const sections = [...survey.sections];
+                                                                    sections[secIdx] = { ...sec, roomName: e.target.value };
+                                                                    updateSurvey({ ...survey, sections });
+                                                                }}
+                                                                placeholder="Section Name"
+                                                                style={{ padding: '4px 8px', fontSize: '12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border)', borderRadius: '4px', width: '130px', color: '#fff' }}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-secondary btn-sm"
+                                                            onClick={() => addItem(secIdx)}
+                                                            style={{ padding: '5px 10px', fontSize: '11px' }}
+                                                        >
+                                                            <Plus size={12} /> Add Item
+                                                        </button>
+                                                    </div>
+
+                                                    {sec.items.length === 0 ? (
+                                                        <div className="empty-state" style={{ padding: '20px 10px', textAlign: 'center' }}>
+                                                            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No checklist items in this section.</p>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-secondary btn-sm"
+                                                                onClick={() => addItem(secIdx)}
+                                                                style={{ marginTop: '8px', fontSize: '11px' }}
+                                                            >
+                                                                Add Checklist Item
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="dense-checklist">
+                                                            {sec.items.map((item, itemIdx) => (
+                                                                <ItemRow
+                                                                    key={item._itemId || itemIdx}
+                                                                    item={item}
+                                                                    onChange={(updated) => updateItem(secIdx, itemIdx, updated)}
+                                                                    onDelete={() => deleteItem(secIdx, itemIdx)}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Special Collapsible Additional Media Section */}
+                                <div className={`accordion-item ${expandedSection === 'global' ? 'active' : ''}`}>
+                                    <div className="accordion-header" onClick={() => setExpandedSection(expandedSection === 'global' ? null : 'global')}>
+                                        <div className="accordion-header-left">
+                                            <ChevronDown size={14} className="accordion-chevron" />
+                                            <span className="accordion-title" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <Sparkles size={11} style={{ color: 'var(--accent-secondary)' }} />
+                                                <span>Additional Photography</span>
+                                            </span>
+                                        </div>
+
+                                        <div className="accordion-header-right">
+                                            {survey.globalPhotos?.length > 0 && (
+                                                <span className="accordion-badge images">{survey.globalPhotos.length} Global</span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: 8 }}>
-                                        <input
-                                            value={section.roomName}
-                                            onChange={e => updateSection(activeSection, { ...section, roomName: e.target.value })}
-                                            placeholder="Section name"
-                                            style={{ width: 180, padding: '7px 12px', fontSize: 13 }}
-                                        />
-                                        <button className="btn btn-secondary btn-sm" onClick={addItem}>
-                                            <Plus size={14} /> Add Item
-                                        </button>
+
+                                    {expandedSection === 'global' && (
+                                        <div className="accordion-body">
+                                            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px' }}>
+                                                Attach master site photos, structural blueprints, or external building facade evidence here.
+                                            </p>
+                                            <PhotoUploader
+                                                photos={survey.globalPhotos || []}
+                                                onChange={urls => updateSurvey({ ...survey, globalPhotos: urls })}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Pane: Live PDF paper sheet simulator */}
+                    <div className="preview-pane">
+                        <div style={{ 
+                            padding: '8px 12px', 
+                            fontSize: '11px', 
+                            fontWeight: 700, 
+                            color: 'var(--accent-secondary)', 
+                            letterSpacing: '0.08em', 
+                            textTransform: 'uppercase',
+                            borderBottom: '1px solid var(--border)',
+                            marginBottom: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                        }}>
+                            <Sparkles size={12} />
+                            <span>PDF Document Live Canvas</span>
+                        </div>
+                        
+                        <div className="pdf-paper-sheet">
+                            {/* Header */}
+                            <div className="pdf-paper-header">
+                                <h2>PROPERTY SURVEY SHEET</h2>
+                                <p>EXECUTIVE CONDITION INSPECTION RECORD</p>
+                            </div>
+
+                            {/* Property Details Grid */}
+                            <div className="pdf-paper-grid">
+                                <div className="pdf-paper-detail">
+                                    <dt>Unit / Property No.</dt>
+                                    <dd>{pd.unitNumber || '—'}</dd>
+                                </div>
+                                <div className="pdf-paper-detail">
+                                    <dt>Complex / Building</dt>
+                                    <dd>{pd.buildingName || '—'}</dd>
+                                </div>
+                                <div className="pdf-paper-detail">
+                                    <dt>Client Name</dt>
+                                    <dd>{pd.client || '—'}</dd>
+                                </div>
+                                <div className="pdf-paper-detail">
+                                    <dt>Survey Date</dt>
+                                    <dd>{formatDate(pd.date)}</dd>
+                                </div>
+                                <div className="pdf-paper-detail" style={{ gridColumn: '1 / -1' }}>
+                                    <dt>Full Location Address</dt>
+                                    <dd style={{ fontSize: '11px', lineHeight: '1.4' }}>{pd.address || '—'}</dd>
+                                </div>
+                                <div className="pdf-paper-detail" style={{ gridColumn: '1 / -1' }}>
+                                    <dt>Lead Inspector</dt>
+                                    <dd>{pd.inspector || '—'}</dd>
+                                </div>
+                            </div>
+
+                            {/* Dynamic Stat Summary Indicators */}
+                            <div className="pdf-paper-stats">
+                                <div className="pdf-paper-stat-pill">
+                                    <span className="pdf-paper-stat-num">{totalItems}</span>
+                                    <span className="pdf-paper-stat-label">Total Items</span>
+                                </div>
+                                <div className="pdf-paper-stat-pill good">
+                                    <span className="pdf-paper-stat-num">{goodItems}</span>
+                                    <span className="pdf-paper-stat-label">✓ Good</span>
+                                </div>
+                                <div className="pdf-paper-stat-pill flagged">
+                                    <span className="pdf-paper-stat-num">{actionItems}</span>
+                                    <span className="pdf-paper-stat-label">⚑ Defective</span>
+                                </div>
+                            </div>
+
+                            {/* Categories Render */}
+                            {survey.sections?.length === 0 ? (
+                                <p style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: '20px 0' }}>
+                                    No rooms or structures added to this survey record.
+                                </p>
+                            ) : (
+                                survey.sections.map((sec, si) => (
+                                    <div key={si} className="pdf-paper-section">
+                                        <div className="pdf-paper-section-title">{sec.roomName}</div>
+                                        {sec.items.length === 0 ? (
+                                            <p style={{ fontSize: '11px', color: '#94a3b8', padding: '4px' }}>No entries checklist.</p>
+                                        ) : (
+                                            <table className="pdf-paper-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style={{ width: '40%' }}>Check Item</th>
+                                                        <th style={{ width: '20%' }}>Condition</th>
+                                                        <th style={{ width: '40%' }}>Inspector Comments</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {sec.items.map((item, ii) => (
+                                                        <tr key={ii}>
+                                                            <td style={{ fontWeight: 600, color: '#1e293b' }}>
+                                                                {item.label || 'Unnamed Asset'}
+                                                                {item.photos && item.photos.length > 0 && (
+                                                                    <div className="pdf-paper-thumb-grid">
+                                                                        {item.photos.map((u, ui) => (
+                                                                            <img key={ui} src={u} alt="thumbnail" className="pdf-paper-thumb" />
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                {item.status === 'Good' && <span className="pdf-paper-badge-good">Good</span>}
+                                                                {item.status === 'Need Action' && <span className="pdf-paper-badge-need-action">Action</span>}
+                                                                {item.status === 'N/A' && <span className="pdf-paper-badge-na">N/A</span>}
+                                                                {!item.status && <span style={{ color: '#94a3b8', fontSize: '9px' }}>—</span>}
+                                                            </td>
+                                                            <td style={{ color: '#475569', fontSize: '11px', lineHeight: '1.3' }}>
+                                                                {item.comments || '—'}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+
+                            {/* Additional Photos */}
+                            {survey.globalPhotos && survey.globalPhotos.length > 0 && (
+                                <div className="pdf-paper-section" style={{ marginTop: '20px' }}>
+                                    <div className="pdf-paper-section-title">Additional Site Photography</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '10px 0' }}>
+                                        {survey.globalPhotos.map((url, i) => (
+                                            <img key={i} src={url} alt="global thumbnail" style={{ width: '60px', height: '45px', objectFit: 'cover', borderRadius: '2px', border: '1px solid #e2e8f0' }} />
+                                        ))}
                                     </div>
                                 </div>
+                            )}
 
-                                {section.items.length === 0 ? (
-                                    <div className="empty-state" style={{ padding: '60px 20px', gridColumn: 'unset' }}>
-                                        <div style={{
-                                            width: 64, height: 64, borderRadius: '50%',
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            margin: '0 auto 20px'
-                                        }}>
-                                            <CheckCircle size={32} color="var(--text-muted)" />
-                                        </div>
-                                        <h3 style={{ fontSize: 20, marginBottom: 8, color: '#fff' }}>No items in this section</h3>
-                                        <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>Start adding items to inspect for {section.roomName}.</p>
-                                        <button className="btn btn-primary" style={{ marginTop: 20, display: 'inline-flex' }} onClick={addItem}>
-                                            <Plus size={15} /> Add First Item
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                        {section.items.map((item, idx) => (
-                                            <ItemRow
-                                                key={idx}
-                                                item={item}
-                                                onChange={(updated) => updateItem(idx, updated)}
-                                                onDelete={() => deleteItem(idx)}
-                                            />
-                                        ))}
-                                        <button className="btn btn-secondary" style={{ alignSelf: 'flex-start', marginTop: 8 }} onClick={addItem}>
-                                            <Plus size={14} /> Add Item
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </main>
+                            {/* Certification disclaimer */}
+                            <div style={{ marginTop: '30px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', fontSize: '10px', color: '#94a3b8', lineHeight: '1.4' }}>
+                                <p style={{ fontWeight: 700 }}>CERTIFICATION DISCLAIMER</p>
+                                <p>This property condition checklist certifies verified evidence captured at the date and time logged. All media attachments remain permanent records of property assessment.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            {/* Toast */}
+            {/* Modals */}
+            {confirmModal && (
+                <ConfirmModal
+                    message={confirmModal.message}
+                    onConfirm={confirmModal.onConfirm}
+                    onCancel={() => setConfirmModal(null)}
+                />
+            )}
+            {inputModal && (
+                <InputModal
+                    title={inputModal.title}
+                    placeholder={inputModal.placeholder}
+                    onConfirm={inputModal.onConfirm}
+                    onCancel={() => setInputModal(null)}
+                />
+            )}
+
+            {/* Auto Save Feedback Toasts */}
             {toast && (
                 <div className={`toast ${toast.type}`}>
-                    {toast.type === 'success' ? <CheckCircle size={16} color="var(--good)" /> : null}
-                    {toast.msg}
+                    {toast.type === 'success' ? <CheckCircle size={16} color="var(--good)" /> : <AlertTriangle size={16} color="#ef4444" />}
+                    <span>{toast.msg}</span>
                 </div>
             )}
         </div>

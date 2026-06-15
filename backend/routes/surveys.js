@@ -34,12 +34,19 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// PUT update survey
+// PUT update survey — only allow known fields to prevent accidental overwrites
 router.put('/:id', async (req, res) => {
     try {
+        const { propertyDetails, sections, globalPhotos, status } = req.body;
+        const update = {};
+        if (propertyDetails !== undefined) update.propertyDetails = propertyDetails;
+        if (sections !== undefined) update.sections = sections;
+        if (globalPhotos !== undefined) update.globalPhotos = globalPhotos;
+        if (status !== undefined) update.status = status;
+
         const survey = await Survey.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            { $set: update },
             { new: true, runValidators: true }
         );
         if (!survey) return res.status(404).json({ error: 'Survey not found' });
