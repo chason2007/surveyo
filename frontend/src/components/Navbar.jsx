@@ -1,24 +1,25 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Building2, ClipboardList } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 
 export default function Navbar() {
-    const location = useLocation();
-
     return (
         <nav className="navbar">
             <div className="container navbar-inner">
                 <Link to="/" className="navbar-brand">
-                    <img src="/logo.png" alt="Surveyo Logo" style={{ width: 28, height: 28, borderRadius: 6 }} />
-                    <span className="text-gradient" style={{ fontSize: '20px', letterSpacing: '-0.02em' }}>Surveyo</span>
+                    <span>Surveyo</span>
                     <div className="brand-dot" />
                 </Link>
                 <div className="navbar-links">
-                    <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+                    <Link to="/" style={{ padding: '6px 14px', fontSize: 13, fontWeight: 500, color: 'rgba(245,240,232,0.7)' }}>
                         Dashboard
                     </Link>
-                    <Link to="/surveys/new" className="btn btn-primary btn-sm">
-                        <ClipboardList size={15} />
-                        New Survey
+                    <Link to="/surveys/new" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        padding: '6px 14px', borderRadius: 3, fontSize: 13, fontWeight: 600,
+                        background: 'rgba(255,255,255,0.1)', color: 'var(--bg-base)',
+                        border: '1px solid rgba(255,255,255,0.15)', transition: 'all 0.18s ease'
+                    }}>
+                        <Plus size={14} /> New Survey
                     </Link>
                 </div>
             </div>

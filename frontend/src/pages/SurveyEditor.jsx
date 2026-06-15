@@ -236,14 +236,13 @@ export default function SurveyEditor() {
 
     return (
         <div className="page-wrapper">
-            {/* Anchored Top SaaS Header Bar */}
+            {/* Anchored Top Header Bar */}
             <div style={{
-                background: 'rgba(11, 15, 25, 0.85)',
-                backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid var(--border)',
-                padding: '12px 0',
+                background: 'var(--bg-surface)',
+                borderBottom: '1.5px solid var(--border)',
+                padding: '10px 0',
                 position: 'sticky',
-                top: 72,
+                top: 60,
                 zIndex: 90
             }}>
                 <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', flexWrap: 'wrap' }}>
@@ -252,17 +251,17 @@ export default function SurveyEditor() {
                             <ArrowLeft size={14} /> Back
                         </button>
                         <div>
-                            <div style={{ fontWeight: 800, fontSize: '15px', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontSize: '17px', color: 'var(--ink-900)', display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span>{pd.unitNumber || 'Property Workspace'}</span>
-                                <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>·</span>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{pd.buildingName || 'Condition Survey'}</span>
+                                <span style={{ color: 'var(--ink-300)', fontWeight: 400 }}>·</span>
+                                <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--ink-500)', fontSize: '13px', fontWeight: 500 }}>{pd.buildingName || 'Condition Survey'}</span>
                             </div>
                         </div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>STATUS:</span>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink-500)', letterSpacing: '0.06em' }}>STATUS:</span>
                             <select
                                 value={survey.status}
                                 onChange={e => updateSurvey({ ...survey, status: e.target.value })}
@@ -525,21 +524,21 @@ export default function SurveyEditor() {
 
                     {/* Right Pane: Live PDF paper sheet simulator */}
                     <div className="preview-pane">
-                        <div style={{ 
-                            padding: '8px 12px', 
-                            fontSize: '11px', 
-                            fontWeight: 700, 
-                            color: 'var(--accent-secondary)', 
-                            letterSpacing: '0.08em', 
+                        <div style={{
+                            padding: '7px 10px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: 'rgba(245,240,232,0.5)',
+                            letterSpacing: '0.1em',
                             textTransform: 'uppercase',
-                            borderBottom: '1px solid var(--border)',
-                            marginBottom: '12px',
+                            borderBottom: '1px solid rgba(255,255,255,0.08)',
+                            marginBottom: '10px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px'
                         }}>
-                            <Sparkles size={12} />
-                            <span>PDF Document Live Canvas</span>
+                            <Sparkles size={11} />
+                            <span>Live Preview</span>
                         </div>
                         
                         <div className="pdf-paper-sheet">

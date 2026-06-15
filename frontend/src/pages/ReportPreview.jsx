@@ -60,12 +60,11 @@ export default function ReportPreview() {
         <div className="page-wrapper" style={{ paddingBottom: 80 }}>
             {/* Executive Sticky Toolbar */}
             <div style={{
-                background: 'rgba(3, 7, 18, 0.85)',
-                backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid var(--border)',
-                padding: '16px 0',
+                background: 'var(--bg-surface)',
+                borderBottom: '1.5px solid var(--border)',
+                padding: '12px 0',
                 position: 'sticky',
-                top: 72,
+                top: 60,
                 zIndex: 100
             }}>
                 <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', flexWrap: 'wrap' }}>
@@ -73,9 +72,9 @@ export default function ReportPreview() {
                         <ArrowLeft size={16} /> Edit Workspace
                     </button>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '15px', fontWeight: 700 }}>
-                        <FileText size={18} style={{ color: 'var(--accent-primary)' }} />
-                        <span>Executive Summary — {pd.unitNumber} {pd.buildingName && `( ${pd.buildingName} )`}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-display)', fontSize: '17px', color: 'var(--ink-900)' }}>
+                        <FileText size={16} style={{ color: 'var(--green)' }} />
+                        <span>{pd.unitNumber} {pd.buildingName && `· ${pd.buildingName}`}</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
