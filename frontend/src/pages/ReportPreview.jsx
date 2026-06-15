@@ -72,8 +72,8 @@ export default function ReportPreview() {
                         <ArrowLeft size={16} /> Edit Workspace
                     </button>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-display)', fontSize: '17px', color: 'var(--ink-900)' }}>
-                        <FileText size={16} style={{ color: 'var(--green)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>
+                        <FileText size={15} style={{ color: 'var(--accent)' }} />
                         <span>{pd.unitNumber} {pd.buildingName && `· ${pd.buildingName}`}</span>
                     </div>
 
@@ -93,8 +93,8 @@ export default function ReportPreview() {
                 <div className="report-container">
                     {/* Professional Header Block */}
                     <div className="report-header">
-                        <h1>PROPERTY CONDITION REPORT</h1>
-                        <p style={{ marginTop: 4, letterSpacing: '0.04em', fontWeight: 600 }}>CONFIDENTIAL CONDITION SURVEY SHEET</p>
+                        <h1>Property Condition Report</h1>
+                        <p style={{ marginTop: 4 }}>{pd.buildingName || ''}{pd.address ? ` · ${pd.address}` : ''}</p>
                     </div>
 
                     <div className="report-body">
@@ -278,11 +278,8 @@ export default function ReportPreview() {
                             </div>
                         )}
 
-                        {/* Premium Legal Footer / Sign-off */}
-                        <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid #e2e8f0', fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>
-                            <p style={{ fontWeight: 600, color: '#64748b' }}>LEGAL DISCLAIMER & CERTIFICATE</p>
-                            <p style={{ marginTop: 6 }}>This certifies that the property detailed within this report has been duly inspected. All observations and assessments recorded correspond to the physical status of the surveyed areas at the exact date and timestamp of the inspection operation.</p>
-                            <p style={{ marginTop: 12 }}>Report compiled on: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                        <div style={{ marginTop: 40, paddingTop: 20, borderTop: '1px solid #e5e5e5', fontSize: 12, color: '#aaa' }}>
+                            Report generated on {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
                         </div>
                     </div>
                 </div>
