@@ -106,6 +106,7 @@ export default function SurveyEditor() {
     const [survey, setSurvey] = useState(null);
     const [expandedSection, setExpandedSection] = useState(0);
     const [goingToReport, setGoingToReport] = useState(false);
+    const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
     const [toast, setToast] = useState(null);
     const [loading, setLoading] = useState(true);
     const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
@@ -167,16 +168,18 @@ export default function SurveyEditor() {
 
     const scheduleSave = useCallback((updatedSurvey) => {
         if (saveTimer.current) clearTimeout(saveTimer.current);
+        setSaveStatus('saving');
         saveTimer.current = setTimeout(async () => {
             if (!isMounted.current) return;
             try {
                 await api.put(`/api/surveys/${id}`, updatedSurvey);
                 localStorage.removeItem(LOCAL_KEY(id));
-                if (isMounted.current) showToast('Auto-saved');
+                if (isMounted.current) setSaveStatus('saved');
             } catch {
-                // Save to localStorage as a real fallback
+                // Save to localStorage as a real fallback. Surfaced via the quiet
+                // inline indicator rather than a recurring toast.
                 try { localStorage.setItem(LOCAL_KEY(id), JSON.stringify(updatedSurvey)); } catch {}
-                if (isMounted.current) showToast('Server unreachable — saved locally', 'error');
+                if (isMounted.current) setSaveStatus('error');
             }
         }, 1500);
     }, [id]);
@@ -194,12 +197,15 @@ export default function SurveyEditor() {
             saveTimer.current = null;
         }
         if (!surveyRef.current) return true;
+        setSaveStatus('saving');
         try {
             await api.put(`/api/surveys/${id}`, surveyRef.current);
             localStorage.removeItem(LOCAL_KEY(id));
+            if (isMounted.current) setSaveStatus('saved');
             return true;
         } catch {
             try { localStorage.setItem(LOCAL_KEY(id), JSON.stringify(surveyRef.current)); } catch {}
+            if (isMounted.current) setSaveStatus('error');
             return false;
         }
     }, [id]);
@@ -318,6 +324,11 @@ export default function SurveyEditor() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {saveStatus !== 'idle' && (
+                            <span className="save-indicator" data-status={saveStatus}>
+                                {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved' : 'Saved offline'}
+                            </span>
+                        )}
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                             <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>STATUS:</span>
                             <select

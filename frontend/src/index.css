@@ -361,6 +361,11 @@ select option { background: var(--bg); }
 .toast.success { border-left: 3px solid var(--accent); }
 .toast.error { border-left: 3px solid var(--danger); }
 
+/* Inline auto-save indicator (calmer than a recurring toast) */
+.save-indicator { font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.save-indicator[data-status="saved"] { color: var(--accent); }
+.save-indicator[data-status="error"] { color: var(--action-text); }
+
 /* Loading */
 .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 14px; color: var(--text-muted); }
 .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }

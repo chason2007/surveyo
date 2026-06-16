@@ -23,6 +23,40 @@ router.post('/', async (req, res) => {
     }
 });
 
+// POST duplicate a survey — copies the checklist structure (rooms + item
+// labels) but clears unit-specific findings (status, photos, comments) so the
+// copy is a fresh inspection for another unit. Reads properties directly so it
+// works for both Mongoose docs and the JSON-fallback mock.
+router.post('/:id/duplicate', async (req, res) => {
+    try {
+        const original = await Survey.findById(req.params.id);
+        if (!original) return res.status(404).json({ error: 'Survey not found' });
+
+        const pd = original.propertyDetails || {};
+        const copy = new Survey({
+            propertyDetails: {
+                unitNumber: pd.unitNumber ? `${pd.unitNumber} (Copy)` : '',
+                buildingName: pd.buildingName || '',
+                address: pd.address || '',
+                propertyType: pd.propertyType || '',
+                inspector: pd.inspector || '',
+                client: pd.client || '',
+                date: new Date()
+            },
+            sections: (original.sections || []).map(s => ({
+                roomName: s.roomName,
+                items: (s.items || []).map(it => ({ label: it.label, status: '', photos: [], comments: '' }))
+            })),
+            globalPhotos: [],
+            status: 'Draft'
+        });
+        await copy.save();
+        res.status(201).json(copy);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 // GET single survey
 router.get('/:id', async (req, res) => {
     try {

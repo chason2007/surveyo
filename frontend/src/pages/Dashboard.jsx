@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Calendar, User, MapPin, Trash2, ChevronRight, Plus, Search, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Building2, Calendar, User, MapPin, Trash2, ChevronRight, Plus, Search, CheckCircle, AlertTriangle, Copy } from 'lucide-react';
 import api from '../api/axios';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -11,6 +11,7 @@ export default function Dashboard() {
     const [activeTab, setActiveTab] = useState('All');
     const [toast, setToast] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const [duplicatingId, setDuplicatingId] = useState(null);
     const navigate = useNavigate();
 
     const showToast = (msg, type = 'success') => {
@@ -46,6 +47,18 @@ export default function Dashboard() {
             showToast('Survey deleted');
         } catch {
             showToast('Failed to delete', 'error');
+        }
+    };
+
+    const duplicateSurvey = async (id) => {
+        if (duplicatingId) return;
+        setDuplicatingId(id);
+        try {
+            const { data } = await api.post(`/api/surveys/${id}/duplicate`);
+            navigate(`/surveys/${data._id}/edit`);
+        } catch {
+            showToast('Failed to duplicate', 'error');
+            setDuplicatingId(null);
         }
     };
 
@@ -150,7 +163,14 @@ export default function Dashboard() {
                                                 onClick={e => { e.stopPropagation(); navigate(`/surveys/${s._id}/report`); }}>
                                                 Report
                                             </button>
+                                            <button className="btn btn-secondary btn-sm btn-icon"
+                                                title="Duplicate for another unit" aria-label="Duplicate survey"
+                                                disabled={duplicatingId === s._id}
+                                                onClick={e => { e.stopPropagation(); duplicateSurvey(s._id); }}>
+                                                <Copy size={13} />
+                                            </button>
                                             <button className="btn btn-danger btn-sm btn-icon"
+                                                title="Delete" aria-label="Delete survey"
                                                 onClick={e => { e.stopPropagation(); setConfirmDelete(s._id); }}>
                                                 <Trash2 size={13} />
                                             </button>

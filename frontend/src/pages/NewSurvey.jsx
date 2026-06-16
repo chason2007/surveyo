@@ -38,6 +38,7 @@ export default function NewSurvey() {
     const [error, setError] = useState('');
     const [customRoom, setCustomRoom] = useState('');
     const [selectedRooms, setSelectedRooms] = useState([]);
+    const [prefillItems, setPrefillItems] = useState(true);
 
     const [details, setDetails] = useState({
         unitNumber: '', buildingName: '', address: '',
@@ -68,7 +69,7 @@ export default function NewSurvey() {
         try {
             const { data } = await api.post('/api/surveys', {
                 propertyDetails: { ...details, date: details.date ? new Date(details.date) : new Date() },
-                sections: selectedRooms.map(name => ({ roomName: name, items: makeItems(name) })),
+                sections: selectedRooms.map(name => ({ roomName: name, items: prefillItems ? makeItems(name) : [] })),
                 status: 'Draft'
             });
             navigate(`/surveys/${data._id}/edit`);
@@ -178,6 +179,16 @@ export default function NewSurvey() {
                         </div>
                     ))}
                 </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <input
+                        type="checkbox"
+                        checked={prefillItems}
+                        onChange={e => setPrefillItems(e.target.checked)}
+                        style={{ width: 'auto', accentColor: 'var(--accent)' }}
+                    />
+                    Prefill rooms with standard checklist items
+                </label>
 
                 {error && <p style={{ color: 'var(--danger)', fontSize: 13, marginBottom: 12 }}>{error}</p>}
 
