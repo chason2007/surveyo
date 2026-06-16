@@ -46,7 +46,7 @@ export default function ReportPreview() {
     if (loading) return (
         <div className="loading-screen" style={{ minHeight: '100vh' }}>
             <div className="spinner" />
-            <span>Assembling condition report document...</span>
+            <span>Loading report…</span>
         </div>
     );
 
@@ -69,7 +69,7 @@ export default function ReportPreview() {
             }}>
                 <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', flexWrap: 'wrap' }}>
                     <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/surveys/${id}/edit`)}>
-                        <ArrowLeft size={16} /> Edit Workspace
+                        <ArrowLeft size={16} /> Edit
                     </button>
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>
@@ -79,10 +79,10 @@ export default function ReportPreview() {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
-                            <Printer size={15} /> Print Report
+                            <Printer size={15} /> Print
                         </button>
                         <button className="btn btn-primary btn-sm" onClick={downloadPDF} disabled={downloading}>
-                            <Download size={15} /> {downloading ? 'Compiling PDF...' : 'Download PDF Document'}
+                            <Download size={15} /> {downloading ? 'Generating…' : 'Download PDF'}
                         </button>
                     </div>
                 </div>

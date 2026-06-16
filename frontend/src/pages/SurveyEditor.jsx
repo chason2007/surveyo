@@ -283,7 +283,7 @@ export default function SurveyEditor() {
     if (loading) return (
         <div className="loading-screen">
             <div className="spinner" />
-            <span>Loading property workspace...</span>
+            <span>Loading…</span>
         </div>
     );
 
@@ -448,6 +448,7 @@ export default function SurveyEditor() {
                                                         className="accordion-delete-btn"
                                                         onClick={(e) => { e.stopPropagation(); deleteSection(secIdx); }}
                                                         title="Delete Section"
+                                                        aria-label={`Delete ${sec.roomName} section`}
                                                     >
                                                         <Trash2 size={11} />
                                                     </button>

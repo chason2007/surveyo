@@ -2,13 +2,28 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function InputModal({ title, placeholder, onConfirm, onCancel }) {
     const [value, setValue] = useState('');
+    const dialogRef = useRef(null);
     const inputRef = useRef();
 
     useEffect(() => {
+        const prevFocus = document.activeElement;
         inputRef.current?.focus();
-        const handler = (e) => { if (e.key === 'Escape') onCancel(); };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
+
+        const handleKey = (e) => {
+            if (e.key === 'Escape') { onCancel(); return; }
+            if (e.key === 'Tab') {
+                const f = dialogRef.current?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (!f || f.length === 0) return;
+                const first = f[0], last = f[f.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => {
+            window.removeEventListener('keydown', handleKey);
+            if (prevFocus && prevFocus.focus) prevFocus.focus();
+        };
     }, [onCancel]);
 
     const submit = () => {
@@ -22,7 +37,7 @@ export default function InputModal({ title, placeholder, onConfirm, onCancel }) 
             background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
         }} onClick={onCancel}>
-            <div style={{
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={title} style={{
                 background: 'var(--bg)', border: '1px solid var(--border)',
                 borderRadius: 12, padding: '28px 32px', maxWidth: 400, width: '90%',
                 boxShadow: '0 16px 40px rgba(0,0,0,0.18)'

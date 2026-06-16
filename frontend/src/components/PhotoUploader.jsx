@@ -76,6 +76,7 @@ export default function PhotoUploader({ photos = [], onChange }) {
                                 className="delete-thumb-btn"
                                 onClick={(e) => removePhoto(e, i)}
                                 title="Delete image"
+                                aria-label={`Delete photo ${i + 1}`}
                             >
                                 <X size={12} />
                             </button>

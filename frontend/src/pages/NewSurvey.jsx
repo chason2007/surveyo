@@ -175,7 +175,7 @@ export default function NewSurvey() {
                     {selectedRooms.filter(r => !DEFAULT_ROOMS.includes(r)).map(name => (
                         <div key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, marginRight: 6, padding: '4px 10px', borderRadius: 4, border: '1px solid var(--accent)', background: 'var(--good-bg)', fontSize: 13, color: 'var(--good-text)' }}>
                             {name}
-                            <button onClick={() => toggleRoom(name)} style={{ display: 'flex', color: 'var(--good-text)', cursor: 'pointer' }}><X size={12} /></button>
+                            <button onClick={() => toggleRoom(name)} aria-label={`Remove ${name}`} style={{ display: 'flex', color: 'var(--good-text)', cursor: 'pointer' }}><X size={12} /></button>
                         </div>
                     ))}
                 </div>
