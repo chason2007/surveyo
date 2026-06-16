@@ -484,11 +484,20 @@ select option { background: var(--bg); }
 .accordion-item { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); overflow: hidden; }
 .accordion-item.active { border-color: #a3d9b5; }
 .accordion-header { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; cursor: pointer; background: transparent; user-select: none; }
-.accordion-header-left { display: flex; align-items: center; gap: 7px; }
+.accordion-header-left { display: flex; align-items: center; gap: 8px; }
 .accordion-chevron { color: #bbb; transition: transform 0.2s; }
 .accordion-item.active .accordion-chevron { transform: rotate(180deg); color: var(--accent); }
-.accordion-title { font-size: 13px; font-weight: 600; }
+.accordion-title { font-size: 14px; font-weight: 600; }
 .accordion-header-right { display: flex; align-items: center; gap: 5px; }
+
+/* Numbered badge marking a section as a top-level container (1, 2, 3...) */
+.section-index {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  background: var(--bg-subtle); color: var(--text-muted);
+  font-size: 10px; font-weight: 700;
+}
+.accordion-item.active .section-index { background: var(--accent); color: #fff; }
 
 .accordion-badge { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; }
 .accordion-badge.complete { background: var(--good-bg); color: var(--good-text); }
@@ -500,17 +509,21 @@ select option { background: var(--bg); }
 
 .accordion-body { border-top: 1px solid var(--border); padding: 12px; background: var(--bg-subtle); }
 
-/* Dense checklist */
-.dense-checklist { display: flex; flex-direction: column; gap: 6px; }
+/* Dense checklist — a left guide-line visually ties every item back to its
+   parent section, the way an outline/tree view would. */
+.dense-checklist { display: flex; flex-direction: column; padding-left: 13px; border-left: 2px solid var(--border); margin-left: 2px; }
 
-.dense-item-card { border: 1px solid var(--border); border-radius: 4px; background: var(--bg); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
-.dense-item-card.good   { border-left: 3px solid var(--accent); }
-.dense-item-card.action { border-left: 3px solid #f59e0b; }
-.dense-item-card.na     { border-left: 3px solid #d4d4d4; }
+.dense-item-row { border-bottom: 1px solid var(--border); padding: 9px 0 9px 12px; display: flex; flex-direction: column; gap: 6px; }
+.dense-item-row:last-child { border-bottom: none; }
 
-.dense-item-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dense-item-bullet { width: 6px; height: 6px; border-radius: 50%; background: #d4d4d4; flex-shrink: 0; }
+.dense-item-row.good   .dense-item-bullet { background: var(--accent); }
+.dense-item-row.action .dense-item-bullet { background: #f59e0b; }
+.dense-item-row.na     .dense-item-bullet { background: #a3a3a3; }
 
-.dense-item-label-input { flex: 1; font-size: 13px; font-weight: 500; border: none; background: transparent; padding: 0; outline: none; color: var(--text); }
+.dense-item-header { display: flex; align-items: center; gap: 8px; }
+
+.dense-item-label-input { flex: 1; font-size: 12.5px; font-weight: 500; border: none; background: transparent; padding: 0; outline: none; color: var(--text); }
 .dense-item-label-input:focus { outline: none; }
 
 .dense-btn-group { display: flex; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 4px; padding: 1px; }

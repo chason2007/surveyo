@@ -26,13 +26,14 @@ function ItemRow({ item, onChange, onDelete }) {
             : item.status === 'N/A' ? 'na' : '';
 
     return (
-        <div className={`dense-item-card ${statusClass}`}>
+        <div className={`dense-item-row ${statusClass}`}>
             <div className="dense-item-header">
+                <span className="dense-item-bullet" aria-hidden="true" />
                 <input
                     className="dense-item-label-input"
                     value={item.label}
                     onChange={e => setField('label', e.target.value)}
-                    placeholder="Checklist Item (e.g., Walls, Ceiling)..."
+                    placeholder="Checklist item (e.g., Walls, Ceiling)..."
                 />
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -414,6 +415,7 @@ export default function SurveyEditor() {
                                             <div className="accordion-header" onClick={() => setExpandedSection(isActive ? null : secIdx)}>
                                                 <div className="accordion-header-left">
                                                     <ChevronDown size={14} className="accordion-chevron" />
+                                                    <span className="section-index">{secIdx + 1}</span>
                                                     <span className="accordion-title">{sec.roomName}</span>
                                                     <span style={{ color: 'var(--text-muted)', fontSize: '10.5px' }}>({total})</span>
                                                 </div>
