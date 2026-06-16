@@ -28,3 +28,6 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Local test fixtures
+mock-images/

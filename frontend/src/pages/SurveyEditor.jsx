@@ -103,30 +103,65 @@ export default function SurveyEditor() {
 
     const [survey, setSurvey] = useState(null);
     const [expandedSection, setExpandedSection] = useState(0);
-    const [saving, setSaving] = useState(false);
+    const [goingToReport, setGoingToReport] = useState(false);
     const [toast, setToast] = useState(null);
     const [loading, setLoading] = useState(true);
     const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
     const [inputModal, setInputModal] = useState(null);     // { title, placeholder, onConfirm }
     const saveTimer = useRef(null);
     const isMounted = useRef(true);
+    const surveyRef = useRef(null);
 
-    useEffect(() => {
-        isMounted.current = true;
-        api.get(`/api/surveys/${id}`)
-            .then(({ data }) => { if (isMounted.current) setSurvey(data); })
-            .catch(() => { if (isMounted.current) navigate('/'); })
-            .finally(() => { if (isMounted.current) setLoading(false); });
-        return () => {
-            isMounted.current = false;
-            if (saveTimer.current) clearTimeout(saveTimer.current);
-        };
-    }, [id, navigate]);
+    useEffect(() => { surveyRef.current = survey; }, [survey]);
 
     const showToast = (msg, type = 'success') => {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 3000);
     };
+
+    useEffect(() => {
+        isMounted.current = true;
+        api.get(`/api/surveys/${id}`)
+            .then(({ data }) => {
+                if (!isMounted.current) return;
+                // A previous save attempt may have failed, leaving a newer draft
+                // sitting in localStorage (see scheduleSave/flushSave/unmount below)
+                // while the server still has the older copy. Restore the local one
+                // instead of silently discarding it, then retry saving it.
+                let restored = null;
+                try {
+                    const raw = localStorage.getItem(LOCAL_KEY(id));
+                    if (raw) restored = JSON.parse(raw);
+                } catch {
+                    localStorage.removeItem(LOCAL_KEY(id));
+                }
+                if (restored) {
+                    setSurvey(restored);
+                    showToast('Restored unsaved changes from your last session');
+                    api.put(`/api/surveys/${id}`, restored)
+                        .then(() => localStorage.removeItem(LOCAL_KEY(id)))
+                        .catch(() => {});
+                } else {
+                    setSurvey(data);
+                }
+            })
+            .catch(() => { if (isMounted.current) navigate('/'); })
+            .finally(() => { if (isMounted.current) setLoading(false); });
+        return () => {
+            isMounted.current = false;
+            // A pending debounced save must not be silently dropped when navigating
+            // away — fire it immediately (fire-and-forget; component is unmounting).
+            if (saveTimer.current) {
+                clearTimeout(saveTimer.current);
+                saveTimer.current = null;
+                if (surveyRef.current) {
+                    api.put(`/api/surveys/${id}`, surveyRef.current).catch(() => {
+                        try { localStorage.setItem(LOCAL_KEY(id), JSON.stringify(surveyRef.current)); } catch {}
+                    });
+                }
+            }
+        };
+    }, [id, navigate]);
 
     const scheduleSave = useCallback((updatedSurvey) => {
         if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -147,6 +182,36 @@ export default function SurveyEditor() {
     const updateSurvey = (updated) => {
         setSurvey(updated);
         scheduleSave(updated);
+    };
+
+    // Bypasses the debounce and saves the latest state right now. Used before
+    // navigating to the report so it never reads stale data out of the DB.
+    const flushSave = useCallback(async () => {
+        if (saveTimer.current) {
+            clearTimeout(saveTimer.current);
+            saveTimer.current = null;
+        }
+        if (!surveyRef.current) return true;
+        try {
+            await api.put(`/api/surveys/${id}`, surveyRef.current);
+            localStorage.removeItem(LOCAL_KEY(id));
+            return true;
+        } catch {
+            try { localStorage.setItem(LOCAL_KEY(id), JSON.stringify(surveyRef.current)); } catch {}
+            return false;
+        }
+    }, [id]);
+
+    const handleGenerateReport = async () => {
+        setGoingToReport(true);
+        const ok = await flushSave();
+        if (!isMounted.current) return;
+        setGoingToReport(false);
+        if (!ok) {
+            showToast('Could not save your latest changes — check your connection and try again', 'error');
+            return;
+        }
+        navigate(`/surveys/${id}/report`);
     };
 
     const updatePropertyDetails = (key, value) => {
@@ -263,9 +328,9 @@ export default function SurveyEditor() {
                             </select>
                         </div>
 
-                        <button className="btn btn-primary btn-sm" onClick={() => navigate(`/surveys/${id}/report`)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <button className="btn btn-primary btn-sm" onClick={handleGenerateReport} disabled={goingToReport} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                             <FileText size={14} />
-                            <span>Generate PDF Report</span>
+                            <span>{goingToReport ? 'Saving...' : 'Generate PDF Report'}</span>
                         </button>
                     </div>
                 </div>
