@@ -110,9 +110,15 @@ router.get('/:id/report', async (req, res) => {
         rule(y);
         y += 26;
 
+        // Bottom edge of the printable area. Page-break decisions compare
+        // against this instead of hardcoded numbers so content never spills
+        // past the margin (which would make PDFKit auto-add a page).
+        const CONTENT_BOTTOM = doc.page.height - PAGE_MARGIN;
+
         // ── SECTIONS ────────────────────────────────────────────────────
         for (const section of survey.sections) {
-            if (y > 730) { doc.addPage(); y = PAGE_MARGIN; }
+            // Keep the section header with at least its first row, not stranded.
+            if (y + 50 > CONTENT_BOTTOM) { doc.addPage(); y = PAGE_MARGIN; }
 
             doc.fillColor(INK).fontSize(12).font('Helvetica-Bold').text(section.roomName, PAGE_MARGIN, y);
             y += 17;
@@ -120,7 +126,12 @@ router.get('/:id/report', async (req, res) => {
             y += 16;
 
             for (const item of section.items) {
-                if (y > 730) { doc.addPage(); y = PAGE_MARGIN; }
+                const commentText = item.comments || 'NIL';
+                doc.fontSize(9.5).font('Helvetica');
+                const commentH = doc.heightOfString(commentText, { width: usableWidth });
+                // Break before drawing if the label row + comment won't fit, so
+                // PDFKit never auto-paginates the body text mid-item.
+                if (y + 16 + commentH + 18 > CONTENT_BOTTOM) { doc.addPage(); y = PAGE_MARGIN; }
 
                 const itemColor = STATUS_COLORS[item.status] || STATUS_COLORS[''];
 
@@ -131,15 +142,15 @@ router.get('/:id/report', async (req, res) => {
                 y += 16;
 
                 doc.fillColor(MUTED).fontSize(9.5).font('Helvetica')
-                    .text(item.comments || 'NIL', PAGE_MARGIN, y, { width: usableWidth });
-                y += doc.heightOfString(item.comments || 'NIL', { width: usableWidth, fontSize: 9.5 }) + 10;
+                    .text(commentText, PAGE_MARGIN, y, { width: usableWidth });
+                y += commentH + 10;
 
                 // Photos — 3 per row
                 if (item.photos && item.photos.length > 0) {
                     const thumbW = 115, thumbH = 80, cols = 3;
                     let col = 0;
                     for (const photoUrl of item.photos) {
-                        if (col === 0 && y + thumbH + 10 > 760) { doc.addPage(); y = PAGE_MARGIN; }
+                        if (col === 0 && y + thumbH > CONTENT_BOTTOM) { doc.addPage(); y = PAGE_MARGIN; }
                         const thumbX = PAGE_MARGIN + col * (thumbW + 8);
                         let imgBuf = null;
                         try { imgBuf = await downloadImage(photoUrl); } catch { /* placeholder drawn below */ }
@@ -152,14 +163,14 @@ router.get('/:id/report', async (req, res) => {
                 }
 
                 y += 8;
-                if (y < 730) rule(y - 4);
+                if (y < CONTENT_BOTTOM) rule(y - 4);
             }
             y += 14;
         }
 
         // ── GLOBAL PHOTOS ───────────────────────────────────────────────
         if (survey.globalPhotos && survey.globalPhotos.length > 0) {
-            if (y > 700) { doc.addPage(); y = PAGE_MARGIN; }
+            if (y + 60 > CONTENT_BOTTOM) { doc.addPage(); y = PAGE_MARGIN; }
 
             doc.fillColor(INK).fontSize(12).font('Helvetica-Bold').text('Additional Photos', PAGE_MARGIN, y);
             y += 17;
@@ -169,7 +180,7 @@ router.get('/:id/report', async (req, res) => {
             const thumbW = 165, thumbH = 120, cols = 3;
             let col = 0;
             for (const photoUrl of survey.globalPhotos) {
-                if (col === 0 && y + thumbH > 760) { doc.addPage(); y = PAGE_MARGIN; }
+                if (col === 0 && y + thumbH > CONTENT_BOTTOM) { doc.addPage(); y = PAGE_MARGIN; }
                 const thumbX = PAGE_MARGIN + col * (thumbW + 15);
                 let imgBuf = null;
                 try { imgBuf = await downloadImage(photoUrl); } catch { /* placeholder drawn below */ }
@@ -181,13 +192,21 @@ router.get('/:id/report', async (req, res) => {
         }
 
         // ── FOOTER ──────────────────────────────────────────────────────
-        const pageCount = doc.bufferedPageRange().count;
+        // Stamping text below the bottom margin makes PDFKit auto-insert a new
+        // page (the cause of trailing blank pages). Temporarily drop the bottom
+        // margin to 0 and disable line wrapping so the footer can't paginate.
+        const pageRange = doc.bufferedPageRange();
+        const pageCount = pageRange.count;
         for (let i = 0; i < pageCount; i++) {
-            doc.switchToPage(i);
+            doc.switchToPage(pageRange.start + i);
+            const savedBottom = doc.page.margins.bottom;
+            doc.page.margins.bottom = 0;
             doc.fillColor(MUTED).fontSize(8).font('Helvetica').text(
                 `${pd.unitNumber || 'Property Condition Survey'}   ·   Page ${i + 1} of ${pageCount}`,
-                PAGE_MARGIN, 805, { align: 'center', width: usableWidth }
+                PAGE_MARGIN, doc.page.height - 35,
+                { align: 'center', width: usableWidth, lineBreak: false }
             );
+            doc.page.margins.bottom = savedBottom;
         }
 
         doc.end();
