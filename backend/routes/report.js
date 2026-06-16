@@ -23,16 +23,31 @@ function downloadImage(url) {
     });
 }
 
-// Status colors (RGB)
+// Status shown as plain colored text rather than a filled badge.
 const STATUS_COLORS = {
-    'Good': [34, 197, 94],   // green
-    'Need Action': [245, 158, 11],  // amber
-    'N/A': [148, 163, 184], // slate
-    '': [148, 163, 184]
+    'Good': '#16a34a',
+    'Need Action': '#d97706',
+    'N/A': '#828282',
+    '': '#828282'
 };
+
+const INK = '#171717';
+const MUTED = '#828282';
+const RULE = '#e5e5e5';
 
 const PAGE_MARGIN = 50;
 const PAGE_WIDTH = 595; // A4
+
+function drawImageOrPlaceholder(doc, buf, x, y, w, h) {
+    if (buf) {
+        doc.image(buf, x, y, { width: w, height: h, cover: [w, h] });
+        doc.rect(x, y, w, h).strokeColor(RULE).lineWidth(1).stroke();
+    } else {
+        doc.rect(x, y, w, h).fillAndStroke('#fafafa', RULE);
+        doc.fillColor(MUTED).fontSize(7).font('Helvetica')
+            .text('Image unavailable', x, y + h / 2 - 5, { width: w, align: 'center' });
+    }
+}
 
 // GET /api/surveys/:id/report
 router.get('/:id/report', async (req, res) => {
@@ -52,213 +67,127 @@ router.get('/:id/report', async (req, res) => {
         const pd = survey.propertyDetails;
         const usableWidth = PAGE_WIDTH - PAGE_MARGIN * 2;
 
-        // ── COVER / HEADER ──────────────────────────────────────────────────
-        // Dark header bar
-        doc.rect(0, 0, PAGE_WIDTH, 110).fill('#0f172a');
+        const rule = (yPos) => {
+            doc.strokeColor(RULE).lineWidth(0.75)
+                .moveTo(PAGE_MARGIN, yPos).lineTo(PAGE_WIDTH - PAGE_MARGIN, yPos).stroke();
+        };
 
-        doc.fillColor('#38bdf8').fontSize(22).font('Helvetica-Bold')
-            .text('PROPERTY CONDITION SURVEY', PAGE_MARGIN, 28, { align: 'left' });
+        // ── HEADER ───────────────────────────────────────────────────────
+        let y = PAGE_MARGIN;
+        doc.fillColor(INK).fontSize(19).font('Helvetica-Bold')
+            .text('Property Condition Survey', PAGE_MARGIN, y);
+        y += 25;
 
-        doc.fillColor('#94a3b8').fontSize(10).font('Helvetica')
-            .text('Professional Property Inspection Report', PAGE_MARGIN, 56);
-
-        // Accent line
-        doc.rect(0, 110, PAGE_WIDTH, 4).fill('#38bdf8');
-
-        // ── PROPERTY DETAILS BOX ────────────────────────────────────────────
-        let y = 130;
-
-        doc.rect(PAGE_MARGIN, y, usableWidth, 120).fill('#f8fafc').stroke('#e2e8f0');
-        y += 10;
-
-        doc.fillColor('#0f172a').fontSize(11).font('Helvetica-Bold')
-            .text('PROPERTY DETAILS', PAGE_MARGIN + 10, y);
-        y += 18;
-
-        const detailsLeft = [
-            ['Unit / Property No.', pd.unitNumber || '—'],
-            ['Building / Complex', pd.buildingName || '—'],
-            ['Address', pd.address || '—'],
-        ];
-        const detailsRight = [
-            ['Property Type', pd.propertyType || '—'],
-            ['Inspector', pd.inspector || '—'],
-            ['Date', pd.date ? new Date(pd.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'],
-        ];
-
-        const halfW = usableWidth / 2 - 10;
-        detailsLeft.forEach(([label, val], i) => {
-            const rowY = y + i * 22;
-            doc.fillColor('#64748b').fontSize(8).font('Helvetica').text(label, PAGE_MARGIN + 10, rowY);
-            doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text(val, PAGE_MARGIN + 10, rowY + 9);
-        });
-        detailsRight.forEach(([label, val], i) => {
-            const rowY = y + i * 22;
-            const colX = PAGE_MARGIN + halfW + 20;
-            doc.fillColor('#64748b').fontSize(8).font('Helvetica').text(label, colX, rowY);
-            doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text(val, colX, rowY + 9);
-        });
-
-        y += detailsLeft.length * 22 + 20;
-
-        // ── SURVEY STATUS BADGE ─────────────────────────────────────────────
-        const statusColor = survey.status === 'Completed' ? '#22c55e' : '#f59e0b';
-        doc.roundedRect(PAGE_MARGIN, y, 100, 22, 4).fill(statusColor);
-        doc.fillColor('#fff').fontSize(9).font('Helvetica-Bold')
-            .text(survey.status.toUpperCase(), PAGE_MARGIN, y + 7, { width: 100, align: 'center' });
-        y += 35;
-
-        // ── LEGEND ─────────────────────────────────────────────────────────
-        const legendItems = [
-            { label: 'Good', color: [34, 197, 94] },
-            { label: 'Need Action', color: [245, 158, 11] },
-            { label: 'N/A', color: [148, 163, 184] }
-        ];
-        doc.fillColor('#64748b').fontSize(8).font('Helvetica').text('LEGEND:', PAGE_MARGIN, y);
-        let lx = PAGE_MARGIN + 45;
-        legendItems.forEach(({ label, color }) => {
-            doc.roundedRect(lx, y - 1, 8, 8, 2).fill(`rgb(${color.join(',')})`);
-            doc.fillColor('#334155').fontSize(8).font('Helvetica').text(label, lx + 11, y);
-            lx += label.length * 6 + 22;
-        });
+        const subtitle = [pd.unitNumber, pd.buildingName, pd.address].filter(Boolean).join('   ·   ');
+        if (subtitle) {
+            doc.fillColor(MUTED).fontSize(10).font('Helvetica').text(subtitle, PAGE_MARGIN, y);
+            y += 16;
+        }
+        y += 8;
+        rule(y);
         y += 20;
 
-        // ── SECTIONS ────────────────────────────────────────────────────────
+        // ── PROPERTY DETAILS ─────────────────────────────────────────────
+        const details = [
+            ['Inspector', pd.inspector || '—'],
+            ['Client', pd.client || '—'],
+            ['Property type', pd.propertyType || '—'],
+            ['Date', pd.date ? new Date(pd.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'],
+        ];
+        const colW = usableWidth / 2;
+        details.forEach(([label, val], i) => {
+            const x = PAGE_MARGIN + (i % 2) * colW;
+            const rowY = y + Math.floor(i / 2) * 34;
+            doc.fillColor(MUTED).fontSize(8).font('Helvetica').text(label.toUpperCase(), x, rowY, { characterSpacing: 0.4 });
+            doc.fillColor(INK).fontSize(11).font('Helvetica-Bold').text(val, x, rowY + 11);
+        });
+        y += Math.ceil(details.length / 2) * 34 + 6;
+
+        const statusColor = survey.status === 'Completed' ? '#16a34a' : '#d97706';
+        doc.fillColor(statusColor).fontSize(9).font('Helvetica-Bold')
+            .text(survey.status.toUpperCase(), PAGE_MARGIN, y, { characterSpacing: 0.4 });
+        y += 24;
+        rule(y);
+        y += 26;
+
+        // ── SECTIONS ────────────────────────────────────────────────────
         for (const section of survey.sections) {
-            // Section header
-            y += 10;
-            if (y > 700) { doc.addPage(); y = PAGE_MARGIN; }
+            if (y > 730) { doc.addPage(); y = PAGE_MARGIN; }
 
-            doc.rect(PAGE_MARGIN, y, usableWidth, 24).fill('#0f172a');
-            doc.fillColor('#38bdf8').fontSize(12).font('Helvetica-Bold')
-                .text(section.roomName.toUpperCase(), PAGE_MARGIN + 10, y + 7);
-            y += 30;
-
-            // Column headers
-            doc.fillColor('#64748b').fontSize(8).font('Helvetica');
-            doc.text('ITEM', PAGE_MARGIN, y);
-            doc.text('STATUS', PAGE_MARGIN + 230, y);
-            doc.text('COMMENTS', PAGE_MARGIN + 310, y);
-            y += 14;
-            doc.rect(PAGE_MARGIN, y, usableWidth, 1).fill('#e2e8f0');
-            y += 6;
+            doc.fillColor(INK).fontSize(12).font('Helvetica-Bold').text(section.roomName, PAGE_MARGIN, y);
+            y += 17;
+            rule(y);
+            y += 16;
 
             for (const item of section.items) {
-                if (y > 720) { doc.addPage(); y = PAGE_MARGIN; }
+                if (y > 730) { doc.addPage(); y = PAGE_MARGIN; }
 
-                const rowStartY = y;
-                const statusColor = STATUS_COLORS[item.status] || STATUS_COLORS[''];
+                const itemColor = STATUS_COLORS[item.status] || STATUS_COLORS[''];
 
-                // Item label
-                doc.fillColor('#1e293b').fontSize(9).font('Helvetica-Bold')
-                    .text(item.label, PAGE_MARGIN, y, { width: 220 });
+                doc.fillColor(INK).fontSize(10.5).font('Helvetica-Bold')
+                    .text(item.label, PAGE_MARGIN, y, { width: usableWidth - 100 });
+                doc.fillColor(itemColor).fontSize(9).font('Helvetica-Bold')
+                    .text((item.status || 'N/A').toUpperCase(), PAGE_MARGIN + usableWidth - 100, y + 1, { width: 100, align: 'right', characterSpacing: 0.3 });
+                y += 16;
 
-                // Status pill
-                doc.roundedRect(PAGE_MARGIN + 228, y - 2, 70, 14, 3)
-                    .fill(`rgb(${statusColor.join(',')})`);
-                doc.fillColor('#fff').fontSize(7.5).font('Helvetica-Bold')
-                    .text(item.status || 'N/A', PAGE_MARGIN + 228, y + 2, { width: 70, align: 'center' });
+                doc.fillColor(MUTED).fontSize(9.5).font('Helvetica')
+                    .text(item.comments || 'NIL', PAGE_MARGIN, y, { width: usableWidth });
+                y += doc.heightOfString(item.comments || 'NIL', { width: usableWidth, fontSize: 9.5 }) + 10;
 
-                // Comments
-                doc.fillColor('#475569').fontSize(8).font('Helvetica')
-                    .text(item.comments || '—', PAGE_MARGIN + 308, y, { width: 175 });
-
-                y += 18;
-
-                // Photos — in a row, 3 per row, ~120px wide
+                // Photos — 3 per row
                 if (item.photos && item.photos.length > 0) {
-                    const thumbW = 115;
-                    const thumbH = 80;
-                    const cols = 3;
+                    const thumbW = 115, thumbH = 80, cols = 3;
                     let col = 0;
-
                     for (const photoUrl of item.photos) {
-                        if (col === 0 && y + thumbH + 10 > 760) {
-                            doc.addPage();
-                            y = PAGE_MARGIN;
-                        }
-
+                        if (col === 0 && y + thumbH + 10 > 760) { doc.addPage(); y = PAGE_MARGIN; }
                         const thumbX = PAGE_MARGIN + col * (thumbW + 8);
-                        try {
-                            const imgBuf = await downloadImage(photoUrl);
-                            doc.image(imgBuf, thumbX, y, { width: thumbW, height: thumbH, cover: [thumbW, thumbH] });
-                            // subtle border
-                            doc.rect(thumbX, y, thumbW, thumbH).stroke('#e2e8f0');
-                        } catch {
-                            // If image fails, draw a placeholder box
-                            doc.rect(thumbX, y, thumbW, thumbH).fill('#f1f5f9').stroke('#e2e8f0');
-                            doc.fillColor('#94a3b8').fontSize(7).text('Image unavailable', thumbX, y + thumbH / 2 - 5, { width: thumbW, align: 'center' });
-                        }
+                        let imgBuf = null;
+                        try { imgBuf = await downloadImage(photoUrl); } catch { /* placeholder drawn below */ }
+                        drawImageOrPlaceholder(doc, imgBuf, thumbX, y, thumbW, thumbH);
 
                         col++;
-                        if (col >= cols) {
-                            col = 0;
-                            y += thumbH + 6;
-                        }
+                        if (col >= cols) { col = 0; y += thumbH + 8; }
                     }
-                    if (col !== 0) y += thumbH + 6;
-                    y += 4;
+                    if (col !== 0) y += thumbH + 8;
                 }
 
-                // Divider
-                doc.rect(PAGE_MARGIN, y, usableWidth, 0.5).fill('#f1f5f9');
-                y += 6;
+                y += 8;
+                if (y < 730) rule(y - 4);
             }
-
-            y += 6;
+            y += 14;
         }
 
-        // ── GLOBAL PHOTOS ───────────────────────────────────────────────────
+        // ── GLOBAL PHOTOS ───────────────────────────────────────────────
         if (survey.globalPhotos && survey.globalPhotos.length > 0) {
-            y += 20;
             if (y > 700) { doc.addPage(); y = PAGE_MARGIN; }
 
-            doc.rect(PAGE_MARGIN, y, usableWidth, 24).fill('#0f172a');
-            doc.fillColor('#38bdf8').fontSize(12).font('Helvetica-Bold')
-                .text('ADDITIONAL PHOTOS', PAGE_MARGIN + 10, y + 7);
-            y += 40;
+            doc.fillColor(INK).fontSize(12).font('Helvetica-Bold').text('Additional Photos', PAGE_MARGIN, y);
+            y += 17;
+            rule(y);
+            y += 18;
 
-            const thumbW = 165;
-            const thumbH = 120;
-            const cols = 3;
+            const thumbW = 165, thumbH = 120, cols = 3;
             let col = 0;
-
             for (const photoUrl of survey.globalPhotos) {
-                if (col === 0 && y + thumbH > 760) {
-                    doc.addPage();
-                    y = PAGE_MARGIN + 20; // Extra padding at top of new page
-                }
-
+                if (col === 0 && y + thumbH > 760) { doc.addPage(); y = PAGE_MARGIN; }
                 const thumbX = PAGE_MARGIN + col * (thumbW + 15);
-                try {
-                    const imgBuf = await downloadImage(photoUrl);
-                    doc.image(imgBuf, thumbX, y, { width: thumbW, height: thumbH, cover: [thumbW, thumbH] });
-                    // subtle border
-                    doc.rect(thumbX, y, thumbW, thumbH).stroke('#e2e8f0');
-                } catch {
-                    // If image fails, draw a placeholder box
-                    doc.rect(thumbX, y, thumbW, thumbH).fill('#f1f5f9').stroke('#e2e8f0');
-                    doc.fillColor('#94a3b8').fontSize(7).text('Image unavailable', thumbX, y + thumbH / 2 - 5, { width: thumbW, align: 'center' });
-                }
+                let imgBuf = null;
+                try { imgBuf = await downloadImage(photoUrl); } catch { /* placeholder drawn below */ }
+                drawImageOrPlaceholder(doc, imgBuf, thumbX, y, thumbW, thumbH);
 
                 col++;
-                if (col >= cols) {
-                    col = 0;
-                    y += thumbH + 15;
-                }
+                if (col >= cols) { col = 0; y += thumbH + 15; }
             }
         }
 
-        // ── FOOTER ──────────────────────────────────────────────────────────
+        // ── FOOTER ──────────────────────────────────────────────────────
         const pageCount = doc.bufferedPageRange().count;
         for (let i = 0; i < pageCount; i++) {
             doc.switchToPage(i);
-            doc.rect(0, 820, PAGE_WIDTH, 22).fill('#0f172a');
-            doc.fillColor('#64748b').fontSize(7).font('Helvetica')
-                .text(
-                    `Property Condition Survey  •  ${pd.buildingName || ''}  •  Page ${i + 1} of ${pageCount}`,
-                    PAGE_MARGIN, 826, { align: 'center', width: usableWidth }
-                );
+            doc.fillColor(MUTED).fontSize(8).font('Helvetica').text(
+                `${pd.unitNumber || 'Property Condition Survey'}   ·   Page ${i + 1} of ${pageCount}`,
+                PAGE_MARGIN, 805, { align: 'center', width: usableWidth }
+            );
         }
 
         doc.end();

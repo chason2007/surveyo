@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Printer, CheckCircle2, AlertOctagon, FileText, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Download, Printer, FileText } from 'lucide-react';
 import api from '../api/axios';
 
 const statusClass = (s) => {
@@ -116,7 +116,7 @@ export default function ReportPreview() {
                             ))}
                         </div>
 
-                        {/* Summary dynamic counters */}
+                        {/* Summary line */}
                         {(() => {
                             const allItems = survey.sections.flatMap(s => s.items);
                             const total = allItems.length;
@@ -124,79 +124,16 @@ export default function ReportPreview() {
                             const flagged = allItems.filter(i => i.status === 'Need Action').length;
                             const na = allItems.filter(i => i.status === 'N/A').length;
                             return (
-                                <div className="report-stats-bar">
-                                    <div className="report-stat">
-                                        <span className="report-stat-num">{total}</span>
-                                        <span className="report-stat-label">Total Items</span>
-                                    </div>
-                                    <div className="report-stat report-stat--good">
-                                        <span className="report-stat-num">{good}</span>
-                                        <span className="report-stat-label">Good (OK)</span>
-                                    </div>
-                                    <div className="report-stat report-stat--flagged">
-                                        <span className="report-stat-num">{flagged}</span>
-                                        <span className="report-stat-label">Defects</span>
-                                    </div>
-                                    <div className="report-stat report-stat--na">
-                                        <span className="report-stat-num">{na}</span>
-                                        <span className="report-stat-label">N/A</span>
-                                    </div>
-                                    
-                                    <span style={{
-                                        marginLeft: 'auto',
-                                        padding: '6px 16px',
-                                        borderRadius: 30,
-                                        fontSize: 11,
-                                        fontWeight: 800,
-                                        letterSpacing: '0.05em',
-                                        background: survey.status === 'Completed' ? '#dcfce7' : '#fef3c7',
-                                        color: survey.status === 'Completed' ? '#166534' : '#92400e',
-                                        border: survey.status === 'Completed' ? '1px solid #bbf7d0' : '1px solid #fde68a'
-                                    }}>
+                                <div className="report-summary-line">
+                                    <span>{total} item{total === 1 ? '' : 's'}</span>
+                                    <span className="sep">·</span>
+                                    <span className="good">{good} good</span>
+                                    <span className="sep">·</span>
+                                    <span className="flagged">{flagged} need action</span>
+                                    {na > 0 && <><span className="sep">·</span><span>{na} N/A</span></>}
+                                    <span className={`status-tag ${survey.status === 'Completed' ? 'completed' : 'draft'}`}>
                                         {survey.status.toUpperCase()}
                                     </span>
-                                </div>
-                            );
-                        })()}
-
-                        {/* Defective Highlight Area */}
-                        {(() => {
-                            const flaggedItems = [];
-                            survey.sections.forEach(section => {
-                                section.items.forEach(item => {
-                                    if (item.status === 'Need Action') {
-                                        flaggedItems.push({ section: section.roomName, item });
-                                    }
-                                });
-                            });
-                            if (flaggedItems.length === 0) return null;
-                            return (
-                                <div className="report-flagged">
-                                    <div className="report-flagged-header">
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <AlertOctagon size={16} />
-                                            <span>ACTION REQUIRED: DETECTED DEFECTS</span>
-                                        </span>
-                                        <span className="report-flagged-count">{flaggedItems.length} ACTION ITEMS</span>
-                                    </div>
-                                    {flaggedItems.map(({ section, item }, fi) => (
-                                        <div key={fi} className="report-flagged-item">
-                                            <div className="report-flagged-breadcrumb">{section} / Checklist</div>
-                                            <div className="report-flagged-question">{item.label}</div>
-                                            {item.comments && (
-                                                <div className="report-flagged-comment">{item.comments}</div>
-                                            )}
-                                            {item.photos && item.photos.length > 0 && (
-                                                <div className="report-photos" style={{ marginTop: 12 }}>
-                                                    {item.photos.map((url, pi) => (
-                                                        <div key={pi} className="report-photo-wrap">
-                                                            <img src={url} alt={`Defect`} className="report-photo" style={{ width: 100, height: 75 }} />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
                                 </div>
                             );
                         })()}
@@ -206,7 +143,7 @@ export default function ReportPreview() {
                             let photoCounter = 0;
                             return survey.sections.map((section, si) => (
                                 <div className="report-section" key={si}>
-                                    <div className="report-section-header">{section.roomName.toUpperCase()} AREA CONDITION</div>
+                                    <div className="report-section-header">{section.roomName}</div>
                                     <table className="report-table">
                                         <thead>
                                             <tr>
@@ -221,11 +158,11 @@ export default function ReportPreview() {
                                                 <tr key={ii}>
                                                     <td data-label="Inspection Asset / Item" style={{ fontWeight: 700, color: '#1e293b' }}>{item.label}</td>
                                                     <td data-label="Condition">
-                                                        <span className={statusClass(item.status)}>
+                                                        <span className={`report-status-text ${statusClass(item.status)}`}>
                                                             {item.status || 'N/A'}
                                                         </span>
                                                     </td>
-                                                    <td data-label="Observations / Remarks" style={{ fontSize: '13px', color: '#475569' }}>{item.comments || 'No abnormalities detected.'}</td>
+                                                    <td data-label="Observations / Remarks" style={{ fontSize: '13px', color: '#475569' }}>{item.comments || 'NIL'}</td>
                                                     <td data-label="Evidence Photos">
                                                         {item.photos && item.photos.length > 0 ? (
                                                             <div className="report-photos">
@@ -260,8 +197,8 @@ export default function ReportPreview() {
                         {/* Global Additional Photos */}
                         {survey.globalPhotos && survey.globalPhotos.length > 0 && (
                             <div className="report-section" style={{ marginTop: 40 }}>
-                                <div className="report-section-header">ADDITIONAL SITE PHOTOGRAPHY</div>
-                                <div className="report-photos" style={{ padding: 24, background: '#f8fafc', border: '1px solid #e2e8f0', borderTop: 'none', gap: 16 }}>
+                                <div className="report-section-header">Additional Photos</div>
+                                <div className="report-photos" style={{ gap: 16 }}>
                                     {survey.globalPhotos.map((url, i) => {
                                         let globalPhotoNum = 0;
                                         survey.sections.forEach(s => s.items.forEach(item => { if (item.photos) globalPhotoNum += item.photos.length; }));
