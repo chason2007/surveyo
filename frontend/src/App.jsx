@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import SystemStatusBanner from './components/SystemStatusBanner';
 import Dashboard from './pages/Dashboard';
 import NewSurvey from './pages/NewSurvey';
 import SurveyEditor from './pages/SurveyEditor';
@@ -10,6 +11,7 @@ import './index.css';
 export default function App() {
   return (
     <div className="app-container">
+      <SystemStatusBanner />
       <Navbar />
       <main className="main-content">
         <Routes>

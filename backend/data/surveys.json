@@ -1,1 +1,93 @@
-[]
+[
+  {
+    "_id": "mock_1eoccljmw",
+    "propertyDetails": {
+      "unitNumber": "101",
+      "buildingName": "Horizon Towers",
+      "address": "Reem Island",
+      "propertyType": "Apartment",
+      "inspector": "Chase",
+      "client": "Berns",
+      "date": "2026-06-16T00:00:00.000Z"
+    },
+    "sections": [
+      {
+        "roomName": "Living Room",
+        "items": [
+          {
+            "label": "Ceiling",
+            "status": "",
+            "photos": [],
+            "comments": ""
+          },
+          {
+            "label": "Walls",
+            "status": "",
+            "photos": [],
+            "comments": ""
+          },
+          {
+            "label": "Floor",
+            "status": "",
+            "photos": [],
+            "comments": ""
+          },
+          {
+            "label": "Windows",
+            "status": "",
+            "photos": [],
+            "comments": ""
+          },
+          {
+            "label": "Curtain Rails",
+            "status": "",
+            "photos": [],
+            "comments": ""
+          },
+          {
+            "label": "Electrical Points",
+            "status": "",
+            "photos": [],
+            "comments": ""
+          },
+          {
+            "label": "AC Unit",
+            "status": "",
+            "photos": [],
+            "comments": ""
+          }
+        ]
+      }
+    ],
+    "globalPhotos": [],
+    "status": "Draft",
+    "createdAt": "2026-06-16T04:54:09.064Z",
+    "updatedAt": "2026-06-16T04:54:32.977Z",
+    "$set": {
+      "propertyDetails": {
+        "unitNumber": "101",
+        "buildingName": "Horizon Towers",
+        "address": "Reem Island",
+        "propertyType": "Apartment",
+        "inspector": "Chase",
+        "client": "Berns",
+        "date": "2026-06-16T00:00:00.000Z"
+      },
+      "sections": [
+        {
+          "roomName": "Living Room",
+          "items": [
+            {
+              "label": "Walls",
+              "status": "Good",
+              "photos": [],
+              "comments": "painting required"
+            }
+          ]
+        }
+      ],
+      "globalPhotos": [],
+      "status": "Draft"
+    }
+  }
+]

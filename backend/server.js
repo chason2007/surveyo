@@ -30,6 +30,7 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
+app.use('/api/health', require('./routes/health'));
 app.use('/api/surveys', require('./routes/surveys'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/surveys', require('./routes/report'));

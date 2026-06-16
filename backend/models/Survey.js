@@ -159,17 +159,21 @@ const SurveyProxy = {
     const data = readData();
     const index = data.findIndex(s => s._id === id);
     if (index < 0) return null;
-    
+
+    // Routes call this as findByIdAndUpdate(id, { $set: {...} }, opts) — unwrap the
+    // $set operator so fields actually apply instead of nesting under a stray "$set" key.
+    const fields = (update && update.$set) ? update.$set : (update || {});
+
     const updatedItem = {
       ...data[index],
-      ...update,
+      ...fields,
       propertyDetails: {
         ...data[index].propertyDetails,
-        ...(update.propertyDetails || {})
+        ...(fields.propertyDetails || {})
       },
       updatedAt: new Date().toISOString()
     };
-    
+
     data[index] = updatedItem;
     writeData(data);
     return new SurveyMock(updatedItem);
