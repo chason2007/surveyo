@@ -3,6 +3,7 @@
 :root {
   --bg: #ffffff;
   --bg-subtle: #f7f7f7;
+  --bg-surface: #ffffff;
   --border: #e5e5e5;
   --text: #111111;
   --text-muted: #888888;
@@ -508,13 +509,15 @@ select option { background: var(--bg); }
 .dense-item-row.action .dense-item-bullet { background: #f59e0b; }
 .dense-item-row.na     .dense-item-bullet { background: #a3a3a3; }
 
-.dense-item-header { display: flex; align-items: center; gap: 8px; }
+.dense-item-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-.dense-item-label-input { flex: 1; font-size: 12.5px; font-weight: 500; border: none; background: transparent; padding: 0; outline: none; color: var(--text); }
+.dense-item-label-input { flex: 1; min-width: 150px; font-size: 13px; font-weight: 500; border: none; background: transparent; padding: 0; outline: none; color: var(--text); }
 .dense-item-label-input:focus { outline: none; }
 
-.dense-btn-group { display: flex; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 4px; padding: 1px; }
-.dense-toggle-btn { padding: 3px 7px; font-size: 10px; font-weight: 600; border-radius: 3px; color: var(--text-muted); transition: all 0.15s; display: flex; align-items: center; gap: 2px; }
+.dense-item-actions { display: flex; align-items: center; gap: 8px; }
+
+.dense-btn-group { display: flex; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 6px; padding: 2px; gap: 2px; }
+.dense-toggle-btn { padding: 7px 11px; font-size: 12px; font-weight: 600; border-radius: 4px; color: var(--text-muted); transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 34px; }
 .dense-toggle-btn:hover { color: var(--text); }
 .dense-toggle-btn.good.active   { background: var(--accent); color: #fff; }
 .dense-toggle-btn.action.active { background: #f59e0b; color: #fff; }
@@ -525,7 +528,7 @@ select option { background: var(--bg); }
 .dense-textarea { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 12px; color: var(--text); width: 100%; resize: vertical; min-height: 30px; outline: none; font-family: inherit; }
 .dense-textarea:focus { border-color: var(--accent); }
 
-.dense-delete-item-btn { color: #ccc; padding: 3px; border-radius: 4px; display: flex; align-items: center; transition: all 0.15s; }
+.dense-delete-item-btn { color: #ccc; padding: 7px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .dense-delete-item-btn:hover { color: var(--danger); background: #fef2f2; }
 
 /* Uploader */
@@ -575,4 +578,15 @@ select option { background: var(--bg); }
   .report-table tr { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; padding: 10px; }
   .report-table td { border: none; padding: 4px 0; }
   .report-table td::before { content: attr(data-label); font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
+
+  /* Touch: 16px prevents iOS Safari from auto-zooming on input focus */
+  input, textarea, select,
+  .field-input, .field-select,
+  .dense-item-label-input, .dense-textarea { font-size: 16px; }
+
+  /* Touch: status toggles become full-width, thumb-sized targets on their own row */
+  .dense-item-actions { flex-basis: 100%; }
+  .dense-btn-group { flex: 1; }
+  .dense-toggle-btn { flex: 1; min-height: 44px; font-size: 13px; }
+  .dense-delete-item-btn { min-height: 44px; min-width: 44px; }
 }

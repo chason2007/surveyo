@@ -36,23 +36,23 @@ function ItemRow({ item, onChange, onDelete }) {
                     placeholder="Checklist item (e.g., Walls, Ceiling)..."
                 />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="dense-item-actions">
                     <div className="dense-btn-group">
                         <button
                             type="button"
                             className={`dense-toggle-btn good ${item.status === 'Good' ? 'active' : ''}`}
                             onClick={() => setStatus(item.status === 'Good' ? '' : 'Good')}
                         >
-                            <Check size={10} />
+                            <Check size={13} />
                             <span>Good</span>
                         </button>
-                        
+
                         <button
                             type="button"
                             className={`dense-toggle-btn action ${item.status === 'Need Action' ? 'active' : ''}`}
                             onClick={() => setStatus(item.status === 'Need Action' ? '' : 'Need Action')}
                         >
-                            <AlertTriangle size={10} />
+                            <AlertTriangle size={13} />
                             <span>Action</span>
                         </button>
 
@@ -61,7 +61,7 @@ function ItemRow({ item, onChange, onDelete }) {
                             className={`dense-toggle-btn na ${item.status === 'N/A' ? 'active' : ''}`}
                             onClick={() => setStatus(item.status === 'N/A' ? '' : 'N/A')}
                         >
-                            <EyeOff size={10} />
+                            <EyeOff size={13} />
                             <span>N/A</span>
                         </button>
                     </div>
@@ -71,8 +71,9 @@ function ItemRow({ item, onChange, onDelete }) {
                         className="dense-delete-item-btn"
                         onClick={onDelete}
                         title="Delete checklist item"
+                        aria-label="Delete checklist item"
                     >
-                        <Trash2 size={12} />
+                        <Trash2 size={14} />
                     </button>
                 </div>
             </div>
@@ -322,7 +323,7 @@ export default function SurveyEditor() {
                             <select
                                 value={survey.status}
                                 onChange={e => updateSurvey({ ...survey, status: e.target.value })}
-                                style={{ width: 'auto', padding: '6px 24px 6px 12px', fontSize: '12px', background: 'rgba(3, 7, 18, 0.4)' }}
+                                style={{ width: 'auto', padding: '6px 24px 6px 12px', fontSize: '12px' }}
                             >
                                 <option>Draft</option>
                                 <option>Completed</option>
@@ -455,7 +456,7 @@ export default function SurveyEditor() {
                                                                     updateSurvey({ ...survey, sections });
                                                                 }}
                                                                 placeholder="Section Name"
-                                                                style={{ padding: '4px 8px', fontSize: '12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border)', borderRadius: '4px', width: '130px', color: '#fff' }}
+                                                                style={{ padding: '4px 8px', fontSize: '12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '4px', width: '130px', color: 'var(--text)' }}
                                                                 onClick={(e) => e.stopPropagation()}
                                                             />
                                                         </div>

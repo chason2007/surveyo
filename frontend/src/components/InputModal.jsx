@@ -23,11 +23,11 @@ export default function InputModal({ title, placeholder, onConfirm, onCancel }) 
             display: 'flex', alignItems: 'center', justifyContent: 'center'
         }} onClick={onCancel}>
             <div style={{
-                background: 'var(--bg-card, #1e293b)', border: '1px solid var(--border, #334155)',
+                background: 'var(--bg)', border: '1px solid var(--border)',
                 borderRadius: 12, padding: '28px 32px', maxWidth: 400, width: '90%',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
+                boxShadow: '0 16px 40px rgba(0,0,0,0.18)'
             }} onClick={e => e.stopPropagation()}>
-                <p style={{ fontWeight: 700, fontSize: 15, color: '#fff', marginBottom: 16 }}>{title}</p>
+                <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 16 }}>{title}</p>
                 <input
                     ref={inputRef}
                     value={value}
