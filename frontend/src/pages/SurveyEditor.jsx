@@ -255,7 +255,7 @@ export default function SurveyEditor() {
 
     const addSection = () => {
         setInputModal({
-            title: 'New Room Section',
+            title: 'New Section',
             placeholder: 'e.g. Living Room, Kitchen...',
             onConfirm: (name) => {
                 setInputModal(null);
@@ -424,7 +424,14 @@ export default function SurveyEditor() {
 
                                     return (
                                         <div key={secIdx} className={`accordion-item ${isActive ? 'active' : ''}`}>
-                                            <div className="accordion-header" onClick={() => setExpandedSection(isActive ? null : secIdx)}>
+                                            <div
+                                                className="accordion-header"
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-expanded={isActive}
+                                                onClick={() => setExpandedSection(isActive ? null : secIdx)}
+                                                onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setExpandedSection(isActive ? null : secIdx); } }}
+                                            >
                                                 <div className="accordion-header-left">
                                                     <ChevronDown size={14} className="accordion-chevron" />
                                                     <span className="section-index">{secIdx + 1}</span>
@@ -514,7 +521,14 @@ export default function SurveyEditor() {
 
                                 {/* Additional Photos */}
                                 <div className={`accordion-item ${expandedSection === 'global' ? 'active' : ''}`}>
-                                    <div className="accordion-header" onClick={() => setExpandedSection(expandedSection === 'global' ? null : 'global')}>
+                                    <div
+                                        className="accordion-header"
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-expanded={expandedSection === 'global'}
+                                        onClick={() => setExpandedSection(expandedSection === 'global' ? null : 'global')}
+                                        onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setExpandedSection(expandedSection === 'global' ? null : 'global'); } }}
+                                    >
                                         <div className="accordion-header-left">
                                             <ChevronDown size={14} className="accordion-chevron" />
                                             <span className="accordion-title">Additional Photos</span>

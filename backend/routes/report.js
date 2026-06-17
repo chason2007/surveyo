@@ -212,7 +212,9 @@ router.get('/:id/report', async (req, res) => {
         doc.end();
     } catch (err) {
         console.error('PDF generation error:', err);
-        if (!res.headersSent) res.status(500).json({ error: err.message });
+        if (res.headersSent) return;
+        if (err.name === 'CastError') return res.status(404).json({ error: 'Survey not found' });
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -32,7 +32,7 @@ const SurveySchema = new mongoose.Schema({
 const MongooseSurvey = mongoose.model('Survey', SurveySchema);
 
 // JSON Fallback DB Implementation
-const DATA_FILE = path.join(__dirname, '..', 'data', 'surveys.json');
+const DATA_FILE = process.env.FALLBACK_DATA_FILE || path.join(__dirname, '..', 'data', 'surveys.json');
 
 function ensureDataFile() {
   const dir = path.dirname(DATA_FILE);
@@ -129,7 +129,8 @@ class SurveyMock {
     } else {
       surveys.push(plainSurvey);
     }
-    writeData(surveys);
+    // Await the write so a read immediately after a save sees the new data.
+    await writeData(surveys);
     return this;
   }
 }
@@ -175,7 +176,7 @@ const SurveyProxy = {
     };
 
     data[index] = updatedItem;
-    writeData(data);
+    await writeData(data);
     return new SurveyMock(updatedItem);
   },
   findByIdAndDelete: async function(id) {
@@ -186,7 +187,7 @@ const SurveyProxy = {
     const index = data.findIndex(s => s._id === id);
     if (index < 0) return null;
     const deleted = data.splice(index, 1)[0];
-    writeData(data);
+    await writeData(data);
     return new SurveyMock(deleted);
   },
   create: async function(data) {

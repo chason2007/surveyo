@@ -114,17 +114,17 @@ export default function Dashboard() {
                                     )}
                                 </div>
                             ) : filtered.map(s => {
-                                const pct = (() => {
-                                    const items = s.sections?.flatMap(sec => sec.items) || [];
-                                    if (!items.length) return 0;
-                                    return Math.round((items.filter(i => i.status).length / items.length) * 100);
-                                })();
+                                const pct = s.progress || 0;
 
                                 return (
                                     <div
                                         key={s._id}
                                         className={`card survey-card ${s.status === 'Completed' ? 'survey-card--completed' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={`Open survey ${s.propertyDetails?.unitNumber || 'untitled'}`}
                                         onClick={() => navigate(`/surveys/${s._id}/edit`)}
+                                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/surveys/${s._id}/edit`); } }}
                                     >
                                         <div className="survey-card-header">
                                             <div>

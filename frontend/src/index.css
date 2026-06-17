@@ -6,7 +6,7 @@
   --bg-surface: #ffffff;
   --border: #e5e5e5;
   --text: #111111;
-  --text-muted: #888888;
+  --text-muted: #6b6b6b;
   --accent: #16a34a;
   --accent-hover: #15803d;
   --danger: #dc2626;
@@ -102,11 +102,11 @@ select option { background: var(--bg); }
   letter-spacing: -0.02em;
 }
 
-.brand-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
-
 .navbar-links { display: flex; align-items: center; gap: 8px; }
 
-.navbar-links a {
+.navbar-links a:not(.btn), .navbar-links button:not(.btn) {
+  display: inline-flex;
+  align-items: center;
   padding: 6px 12px;
   border-radius: var(--radius);
   font-size: 13px;
@@ -115,36 +115,15 @@ select option { background: var(--bg); }
   transition: color 0.15s, background 0.15s;
 }
 
-.navbar-links a:hover { color: var(--text); background: var(--bg-subtle); }
+.navbar-links a:not(.btn):hover, .navbar-links button:not(.btn):hover { color: var(--text); background: var(--bg-subtle); }
 
-/* Hero */
-.hero {
-  background: var(--bg-subtle);
-  border-bottom: 1px solid var(--border);
-  padding: 48px 0 40px;
+/* Keyboard focus ring for the div-based controls (accordion headers, cards)
+   that act as buttons via role="button" + tabIndex. */
+.accordion-header:focus-visible,
+.survey-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
-
-.hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-.hero h1 {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-
-.hero p { font-size: 15px; color: var(--text-muted); max-width: 480px; }
 .hero-actions { display: flex; gap: 10px; margin-top: 24px; }
 
 /* Buttons */
@@ -183,35 +162,6 @@ select option { background: var(--bg); }
 }
 
 .card:hover { border-color: #d0d0d0; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.card-glow:hover { border-color: #a3d9b5; }
-
-/* Stats */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin: -24px auto 28px;
-  position: relative;
-  z-index: 10;
-}
-
-.stat-card { padding: 20px; display: flex; align-items: center; gap: 14px; }
-
-.stat-icon-wrapper {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius);
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-card-details { display: flex; flex-direction: column; }
-.stat-card-value { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
-.stat-card-label { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 3px; }
 
 /* Dashboard controls */
 .dashboard-controls {
@@ -269,13 +219,6 @@ select option { background: var(--bg); }
 .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 .badge-completed { background: var(--good-bg); color: var(--good-text); }
 .badge-draft { background: var(--action-bg); color: var(--action-text); }
-
-/* Forms — old grid style (kept for compatibility) */
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
-.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-
-.section-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
 
 /* Inline form rows */
 .field-row {
@@ -427,51 +370,6 @@ select option { background: var(--bg); }
 .report-status-need-action { color: var(--action-text); }
 .report-status-na { color: var(--text-muted); }
 
-/* Split workspace */
-.split-workspace { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; padding: 20px 0 60px; }
-@media (max-width: 1100px) { .split-workspace { grid-template-columns: 1fr; } }
-
-.input-pane { display: flex; flex-direction: column; gap: 16px; }
-
-.preview-pane {
-  position: sticky; top: 120px;
-  max-height: calc(100vh - 150px); overflow-y: auto;
-  border-radius: var(--radius); border: 1px solid var(--border);
-  background: #f0f0f0; padding: 8px;
-}
-
-/* PDF paper */
-.pdf-paper-sheet { background: #fff; border-radius: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); padding: 24px; min-height: 600px; font-family: inherit; }
-.pdf-paper-header { border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 16px; }
-.pdf-paper-header h2 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
-.pdf-paper-header p { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
-
-.pdf-paper-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #f7f7f7; border: 1px solid var(--border); border-radius: 4px; padding: 10px; margin-bottom: 14px; }
-.pdf-paper-detail dt { font-size: 8px; font-weight: 600; color: #888; text-transform: uppercase; margin-bottom: 1px; }
-.pdf-paper-detail dd { font-size: 12px; font-weight: 600; }
-
-.pdf-paper-stats { display: flex; gap: 6px; margin-bottom: 16px; }
-.pdf-paper-stat-pill { flex: 1; background: #f7f7f7; border: 1px solid var(--border); border-radius: 4px; padding: 6px; text-align: center; }
-.pdf-paper-stat-pill.good { background: var(--good-bg); border-color: #bbf7d0; }
-.pdf-paper-stat-pill.flagged { background: var(--action-bg); border-color: #fde68a; }
-.pdf-paper-stat-num { font-size: 16px; font-weight: 700; display: block; }
-.pdf-paper-stat-pill.good .pdf-paper-stat-num { color: var(--good-text); }
-.pdf-paper-stat-pill.flagged .pdf-paper-stat-num { color: var(--action-text); }
-.pdf-paper-stat-label { font-size: 8px; font-weight: 600; color: #888; text-transform: uppercase; display: block; margin-top: 1px; }
-
-.pdf-paper-section { margin-bottom: 16px; }
-.pdf-paper-section-title { background: #111; color: #fff; padding: 5px 8px; font-size: 10px; font-weight: 700; border-radius: 3px 3px 0 0; text-transform: uppercase; letter-spacing: 0.06em; }
-.pdf-paper-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-.pdf-paper-table th { text-align: left; padding: 5px 7px; background: #f7f7f7; color: #888; font-weight: 700; border-bottom: 1px solid var(--border); font-size: 9px; text-transform: uppercase; }
-.pdf-paper-table td { padding: 7px; border-bottom: 1px solid var(--border); vertical-align: top; color: #444; }
-
-.pdf-paper-badge-good { background: var(--good-bg); color: var(--good-text); font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
-.pdf-paper-badge-need-action { background: var(--action-bg); color: var(--action-text); font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
-.pdf-paper-badge-na { background: var(--na-bg); color: var(--na-text); font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
-
-.pdf-paper-thumb-grid { display: flex; gap: 3px; margin-top: 3px; }
-.pdf-paper-thumb { width: 30px; height: 22px; object-fit: cover; border-radius: 2px; border: 1px solid var(--border); }
-
 /* Accordion */
 .accordion-wrapper { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .accordion-item { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); overflow: hidden; }
@@ -571,10 +469,11 @@ select option { background: var(--bg); }
 /* Mobile */
 @media (max-width: 640px) {
   .container { padding: 0 16px; }
-  .hero { padding: 32px 0 28px; }
-  .hero h1 { font-size: 22px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); margin-top: 12px; }
   .survey-grid { grid-template-columns: 1fr; }
+
+  /* Stack property-detail rows so the fixed-width label doesn't crush the input */
+  .field-row { flex-direction: column; align-items: stretch; gap: 4px; }
+  .field-label { width: auto; text-align: left; padding-top: 0; }
   .report-container { margin: 12px; }
   .report-header, .report-body { padding: 24px; }
   .report-details-grid { grid-template-columns: 1fr; }
