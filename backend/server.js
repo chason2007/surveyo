@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-const required = ['MONGO_URI', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
+const required = ['MONGO_URI', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET', 'APP_PASSWORD', 'JWT_SECRET'];
 required.forEach(k => {
   if (!process.env[k]) throw new Error(`Missing required env var: ${k}`);
 });
@@ -29,11 +29,14 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Routes
+const requireAuth = require('./middleware/auth');
+
+// Routes — /api/health and /api/auth are public; everything else is gated.
 app.use('/api/health', require('./routes/health'));
-app.use('/api/surveys', require('./routes/surveys'));
-app.use('/api/upload', require('./routes/upload'));
-app.use('/api/surveys', require('./routes/report'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/surveys', requireAuth, require('./routes/surveys'));
+app.use('/api/upload', requireAuth, require('./routes/upload'));
+app.use('/api/surveys', requireAuth, require('./routes/report'));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))

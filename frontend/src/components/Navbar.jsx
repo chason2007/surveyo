@@ -1,7 +1,14 @@
-import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus, LogOut } from 'lucide-react';
+import { clearToken } from '../api/axios';
 
 export default function Navbar() {
+    const navigate = useNavigate();
+    const logout = () => {
+        clearToken();
+        navigate('/login', { replace: true });
+    };
+
     return (
         <nav className="navbar">
             <div className="container navbar-inner">
@@ -22,6 +29,14 @@ export default function Navbar() {
                     <Link to="/surveys/new" className="btn btn-primary btn-sm">
                         <Plus size={14} /> New Survey
                     </Link>
+                    <button
+                        onClick={logout}
+                        aria-label="Log out"
+                        title="Log out"
+                        style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', color: 'rgba(245,240,232,0.7)', cursor: 'pointer', background: 'none', border: 'none' }}
+                    >
+                        <LogOut size={15} />
+                    </button>
                 </div>
             </div>
         </nav>
